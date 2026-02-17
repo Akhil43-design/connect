@@ -275,11 +275,28 @@ function startScanner() {
         return;
     }
 
+    // Debug log element
+    let debugLog = document.getElementById("debug-log");
+    if (!debugLog) {
+        debugLog = document.createElement("div");
+        debugLog.id = "debug-log";
+        debugLog.style.cssText = "margin-top: 10px; padding: 10px; background: #f0f0f0; border: 1px solid #ccc; font-size: 12px; height: 100px; overflow-y: scroll;";
+        document.querySelector(".scanner-container").appendChild(debugLog);
+    }
+
+    function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        debugLog.innerHTML = `<div>[${time}] ${msg}</div>` + debugLog.innerHTML;
+        console.log(msg);
+    }
+
+    log("Initializing scanner...");
+
     html5QrCode = new Html5Qrcode("qr-reader");
 
     const config = {
-        fps: 20, // Increased FPS for faster scanning
-        qrbox: { width: 250, height: 250 },
+        fps: 10,
+        // qrbox: { width: 250, height: 250 }, // REMOVED: Scan full frame to fixing detection issues
         aspectRatio: 1.0,
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
@@ -289,15 +306,21 @@ function startScanner() {
     html5QrCode.start(
         { facingMode: "environment" }, // Use rear camera
         config,
-        onScanSuccess,
-        onScanError
+        (decodedText, decodedResult) => {
+            log("SUCCESS: " + decodedText);
+            onScanSuccess(decodedText, decodedResult);
+        },
+        (errorMessage) => {
+            // log("Scanning... " + errorMessage); // Too verbose to log every frame error
+        }
     ).then(() => {
         isScanning = true;
-        console.log("Scanner started successfully");
+        log("Scanner started! Point at a QR code.");
         // Add visual feedback that scanner is active
         const reader = document.getElementById("qr-reader");
         if (reader) reader.style.border = "2px solid #2ecc71";
     }).catch(err => {
+        log("FATAL ERROR: " + err);
         console.error("Camera error details:", err);
         let errorMsg = "Unable to access camera.";
 
