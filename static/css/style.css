@@ -661,3 +661,17 @@ body {
         text-align: center;
     }
 }
+
+/* ========== HIGH DEMAND SECTION ========== */
+.high-demand-section {
+    border-left: 5px solid #e74c3c;
+    background-color: #fff5f5;
+}
+
+.demand-card {
+    transition: transform 0.2s;
+}
+
+.demand-card:hover {
+    transform: translateX(5px);
+}

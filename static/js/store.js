@@ -213,7 +213,7 @@ async function loadAnalytics() {
             mostScanned.innerHTML = '<p>No data yet</p>';
         }
 
-        // Update most requested
+        // Update most requested in analytics card
         const mostRequested = document.getElementById('most-requested');
         if (analytics.most_requested.length > 0) {
             mostRequested.innerHTML = '<ul class="analytics-list">' +
@@ -223,6 +223,21 @@ async function loadAnalytics() {
                 '</ul>';
         } else {
             mostRequested.innerHTML = '<p>No requests yet</p>';
+        }
+
+        // Update High Demand Section
+        const highDemandList = document.getElementById('high-demand-list');
+        if (analytics.most_requested.length > 0) {
+            highDemandList.innerHTML = '<div class="demand-grid">' +
+                analytics.most_requested.map(item =>
+                    `<div class="demand-card" style="border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                        <span style="font-weight: bold; font-size: 1.1em;">${item.name}</span>
+                        <span class="badge" style="background: #e74c3c; color: white; padding: 5px 10px; border-radius: 20px;">${item.count} Requests</span>
+                    </div>`
+                ).join('') +
+                '</div>';
+        } else {
+            highDemandList.innerHTML = '<p>No high demand products at the moment.</p>';
         }
     } catch (error) {
         console.error('Error loading analytics:', error);
