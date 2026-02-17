@@ -32,6 +32,10 @@
         <div id="qr-reader"></div>
         <div class="scanner-instructions">
             <p>Point your camera at a product QR code</p>
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <p style="font-size: 0.9em; margin-bottom: 5px;">Or upload an image:</p>
+                <input type="file" id="qr-input-file" accept="image/*" onchange="scanFromFile(this)">
+            </div>
         </div>
     </div>
 </div>
@@ -53,5 +57,5 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="{{ url_for('static', filename='js/customer.js') }}?v=7"></script>
+<script src="{{ url_for('static', filename='js/customer.js') }}?v=8"></script>
 {% endblock %}

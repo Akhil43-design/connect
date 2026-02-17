@@ -258,6 +258,27 @@ function stopScanner() {
     }
 }
 
+// Scan from file (Alternative to camera)
+function scanFromFile(inputElement) {
+    if (inputElement.files.length === 0) return;
+
+    const imageFile = inputElement.files[0];
+
+    // Scan file
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    html5QrCode.scanFile(imageFile, true)
+        .then(decodedText => {
+            // Success
+            console.log("File Scan Success:", decodedText);
+            onScanSuccess(decodedText, null);
+        })
+        .catch(err => {
+            // Failure
+            console.error("Error scanning file:", err);
+            alert("Could not scan QR code from file.\nMake sure the image is clear and contains a valid QR code.");
+        });
+}
+
 // Start QR code scanner
 function startScanner() {
     // Check for HTTPS (required for camera access)
