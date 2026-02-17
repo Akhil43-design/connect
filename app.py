@@ -113,21 +113,37 @@ def api_login():
     # Clear any existing session
     session.clear()
     
-    # For demo purposes, we'll create a simple login
-    # In production, implement proper authentication with Firebase Auth
-    user_id = str(uuid.uuid4())
-    role = 'customer'  # Default role
+    # Look up user in Firebase
+    user = firebase.get_user_by_email(email)
     
-    # Set session
-    session['user_id'] = user_id
-    session['email'] = email
-    session['role'] = role
-    
-    return jsonify({
-        'success': True,
-        'user_id': user_id,
-        'role': role
-    })
+    if user:
+        # User exists, use their data
+        # In a real app, verify password hash here
+        user_id = user.get('user_id')
+        role = user.get('role')
+        
+        # Determine redirect based on role
+        if role == 'customer':
+            redirect_url = '/customer/dashboard'
+        elif role == 'store_owner':
+            redirect_url = '/store/dashboard'
+        else:
+            redirect_url = '/'
+            
+        # Set session
+        session['user_id'] = user_id
+        session['email'] = email
+        session['role'] = role
+        
+        return jsonify({
+            'success': True,
+            'user_id': user_id,
+            'role': role,
+            'redirect': redirect_url
+        })
+    else:
+        # User not found
+        return jsonify({'error': 'Invalid credentials'}), 401
 
 # ========== CUSTOMER ROUTES ==========
 

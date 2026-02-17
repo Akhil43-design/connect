@@ -35,8 +35,22 @@ class FirebaseService:
         url = self._get_url(f"users/{user_id}")
         response = requests.get(url)
         return response.json()
-    
-    # ========== STORE OPERATIONS ==========
+    def get_user_by_email(self, email):
+        """Get user data by email (scan all users - inefficient but works for demo)"""
+        url = self._get_url("users")
+        response = requests.get(url)
+        users = response.json()
+        
+        if not users:
+            return None
+            
+        for user_id, user_data in users.items():
+            if user_data.get('email') == email:
+                # Inject user_id
+                user_data['user_id'] = user_id
+                return user_data
+        
+        return None
     
     def create_store(self, store_id, store_data):
         """Create a new store"""
