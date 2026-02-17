@@ -314,26 +314,123 @@ function onScanSuccess(decodedText, decodedResult) {
 
     // Check if it's a product URL
     if (decodedText.includes('/store/') && decodedText.includes('/product/')) {
-        // Extract the path from the URL
-        let productPath;
+        // Extract storeId and productId
         try {
-            const url = new URL(decodedText);
-            productPath = url.pathname;
+            // Expected format: /api/qr/<store_id>/<product_id> OR /store/<store_id>/product/<product_id>
+            // Let's parse the URL
+            const url = new URL(decodedText, window.location.origin);
+            const pathParts = url.pathname.split('/');
+
+            // Handle different URL structures if necessary, but standard is /store/SID/product/PID
+            let storeId, productId;
+
+            if (pathParts.includes('store') && pathParts.includes('product')) {
+                const storeIndex = pathParts.indexOf('store');
+                storeId = pathParts[storeIndex + 1];
+                productId = pathParts[storeIndex + 3];
+            } else if (pathParts.includes('api') && pathParts.includes('qr')) {
+                const qrIndex = pathParts.indexOf('qr');
+                storeId = pathParts[qrIndex + 1];
+                productId = pathParts[qrIndex + 2];
+            }
+
+            if (storeId && productId) {
+                // Stop scanner
+                stopScanner();
+                closeScanner(); // Close the scanner modal
+
+                // Fetch and show product details
+                fetchProductAndShowModal(storeId, productId);
+            } else {
+                alert("Could not parse product details from QR code.");
+            }
+
         } catch (e) {
-            // If it's already a path, use it directly
-            productPath = decodedText;
+            console.error("Error parsing QR code:", e);
+            alert("Invalid QR code format.");
         }
-
-        // Show success feedback
-        showScanSuccess();
-
-        // Stop scanner and redirect
-        stopScanner();
-        setTimeout(() => {
-            window.location.href = productPath;
-        }, 500);
     } else {
         alert("Invalid QR code. Please scan a product QR code.");
+    }
+}
+
+// Fetch product and show modal
+async function fetchProductAndShowModal(storeId, productId) {
+    const modal = document.getElementById('product-modal');
+    const content = document.getElementById('modal-product-content');
+
+    // Show modal with loading state
+    modal.style.display = 'flex';
+    content.innerHTML = '<div class="loading-spinner">Loading product info...</div>';
+
+    try {
+        const response = await fetch(`/api/stores/${storeId}/products/${productId}`);
+        const product = await response.json();
+
+        if (product.error) {
+            content.innerHTML = `<p class="error-text">${product.error}</p>`;
+            return;
+        }
+
+        const imageUrl = product.image || 'https://via.placeholder.com/300x300?text=No+Image';
+
+        content.innerHTML = `
+            <img src="${imageUrl}" alt="${product.name}" style="max-width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 8px;">
+            <h2 style="margin-bottom: 10px; color: #333;">${product.name}</h2>
+            <div style="font-size: 1.5em; color: #27ae60; font-weight: bold; margin-bottom: 10px;">$${parseFloat(product.price).toFixed(2)}</div>
+            
+            <div style="margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; text-align: left;">
+                ${product.size ? `<p><strong>Size:</strong> ${product.size}</p>` : ''}
+                ${product.color ? `<p><strong>Color:</strong> ${product.color}</p>` : ''}
+                <p><strong>Description:</strong> ${product.description || 'No description'}</p>
+            </div>
+
+            <button onclick="addToCartFromModal('${storeId}', '${productId}', '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image}')" 
+                    class="btn-primary" style="width: 100%; padding: 12px; font-size: 1.1em;">
+                Add to Cart
+            </button>
+        `;
+
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        content.innerHTML = '<p class="error-text">Failed to load product details.</p>';
+    }
+}
+
+// Close product modal
+function closeProductModal() {
+    document.getElementById('product-modal').style.display = 'none';
+}
+
+// Add to cart from modal
+async function addToCartFromModal(storeId, productId, name, price, image) {
+    try {
+        const cartData = {
+            product_id: productId,
+            store_id: storeId,
+            product_name: name,
+            price: price,
+            quantity: 1,
+            image: image
+        };
+
+        const response = await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cartData)
+        });
+
+        if (response.ok) {
+            // Show success message or feedback
+            alert('Added to Cart!');
+            closeProductModal();
+            // Optional: Update cart count if exists
+        } else {
+            alert('Failed to add to cart.');
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('Error adding to cart.');
     }
 }
 
@@ -345,23 +442,30 @@ function onScanError(errorMessage) {
 // Show scan success feedback
 function showScanSuccess() {
     const reader = document.getElementById('qr-reader');
-    reader.style.border = '3px solid #27ae60';
-
-    // Play success sound (optional)
-    // You can add a beep sound here if desired
-
-    setTimeout(() => {
-        reader.style.border = 'none';
-    }, 500);
+    if (reader) {
+        reader.style.border = '5px solid #27ae60';
+        setTimeout(() => {
+            reader.style.border = 'none';
+        }, 500);
+    }
 }
 
-// Close scanner when clicking outside
+// Close scanner/modal when clicking outside
 document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('scanner-modal');
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
+    const scannerModal = document.getElementById('scanner-modal');
+    if (scannerModal) {
+        scannerModal.addEventListener('click', function (e) {
+            if (e.target === scannerModal) {
                 closeScanner();
+            }
+        });
+    }
+
+    const productModal = document.getElementById('product-modal');
+    if (productModal) {
+        productModal.addEventListener('click', function (e) {
+            if (e.target === productModal) {
+                closeProductModal();
             }
         });
     }

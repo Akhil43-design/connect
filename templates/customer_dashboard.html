@@ -33,6 +33,20 @@
         </div>
     </div>
 </div>
+
+<!-- Product Detail Modal -->
+<div id="product-modal" class="scanner-modal" style="display: none; align-items: center; justify-content: center;">
+    <div class="scanner-container" style="max-width: 500px; width: 90%;">
+        <div class="scanner-header">
+            <h2>Product Details</h2>
+            <button onclick="closeProductModal()" class="btn-close">✕</button>
+        </div>
+        <div id="modal-product-content" style="padding: 20px; text-align: center;">
+            <!-- Product details injected here -->
+            <div class="loading-spinner">Loading...</div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
