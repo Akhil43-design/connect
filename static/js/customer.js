@@ -347,17 +347,23 @@ function startScanner() {
 function onScanSuccess(decodedText, decodedResult) {
     console.log("QR Code detected:", decodedText);
 
-    // DEBUG: Show what was scanned to help the user understand what's happening
-    // Remove this in final production if deemed too annoying, but critical for debugging now.
-    // alert("Scanned: " + decodedText); 
+    // DEBUG: Alert immediately to see what we got
+    alert("DEBUG: Received Scan:\n" + decodedText);
 
     // Check if it's a product URL
     if (decodedText.includes('/store/') && decodedText.includes('/product/')) {
         // Extract storeId and productId
         try {
-            // Expected format: /api/qr/<store_id>/<product_id> OR /store/<store_id>/product/<product_id>
-            // Let's parse the URL
-            const url = new URL(decodedText, window.location.origin);
+            // Attempt to handle relative URLs by prepending origin if needed
+            let urlString = decodedText;
+            if (urlString.startsWith('/')) {
+                urlString = window.location.origin + urlString;
+            }
+
+            // Log the URL we are trying to parse
+            console.log("Parsing URL:", urlString);
+
+            const url = new URL(urlString);
             const pathParts = url.pathname.split('/');
 
             // Handle different URL structures if necessary, but standard is /store/SID/product/PID
@@ -391,7 +397,9 @@ function onScanSuccess(decodedText, decodedResult) {
 
         } catch (e) {
             console.error("Error parsing QR code:", e);
-            alert("Error processing QR code: " + e.message);
+            // Handle cases where e might not be an Error object
+            const errorText = (e && e.message) ? e.message : String(e);
+            alert("Error processing QR code:\n" + errorText + "\n\nInput: " + decodedText);
         }
     } else {
         // If it doesn't look like our URL, tell the user what it IS
