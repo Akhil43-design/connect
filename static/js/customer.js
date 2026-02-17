@@ -278,9 +278,12 @@ function startScanner() {
     html5QrCode = new Html5Qrcode("qr-reader");
 
     const config = {
-        fps: 10,
+        fps: 20, // Increased FPS for faster scanning
         qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
+        aspectRatio: 1.0,
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+        }
     };
 
     html5QrCode.start(
@@ -291,6 +294,9 @@ function startScanner() {
     ).then(() => {
         isScanning = true;
         console.log("Scanner started successfully");
+        // Add visual feedback that scanner is active
+        const reader = document.getElementById("qr-reader");
+        if (reader) reader.style.border = "2px solid #2ecc71";
     }).catch(err => {
         console.error("Camera error details:", err);
         let errorMsg = "Unable to access camera.";
@@ -301,9 +307,11 @@ function startScanner() {
             errorMsg = "No camera found on this device.";
         } else if (err.name === 'NotReadableError') {
             errorMsg = "Camera is already in use by another app.";
+        } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            errorMsg = "Camera requires HTTPS or Localhost.";
         }
 
-        alert(errorMsg + "\n\nError details: " + err);
+        alert(errorMsg + "\n\nTechncial details: " + err);
         closeScanner();
     });
 }
@@ -311,6 +319,10 @@ function startScanner() {
 // Handle successful QR scan
 function onScanSuccess(decodedText, decodedResult) {
     console.log("QR Code detected:", decodedText);
+
+    // DEBUG: Show what was scanned to help the user understand what's happening
+    // Remove this in final production if deemed too annoying, but critical for debugging now.
+    // alert("Scanned: " + decodedText); 
 
     // Check if it's a product URL
     if (decodedText.includes('/store/') && decodedText.includes('/product/')) {
@@ -347,15 +359,16 @@ function onScanSuccess(decodedText, decodedResult) {
                 // Fetch and show product details
                 fetchProductAndShowModal(storeId, productId);
             } else {
-                alert("Could not parse product details from QR code.");
+                alert("Parsed text but could not find Store ID or Product ID.\nText: " + decodedText);
             }
 
         } catch (e) {
             console.error("Error parsing QR code:", e);
-            alert("Invalid QR code format.");
+            alert("Error processing QR code: " + e.message);
         }
     } else {
-        alert("Invalid QR code. Please scan a product QR code.");
+        // If it doesn't look like our URL, tell the user what it IS
+        alert("Scanned something, but it's not a valid product code.\nScanned: " + decodedText);
     }
 }
 
