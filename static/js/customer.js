@@ -317,7 +317,7 @@ function startScanner() {
 
     const config = {
         fps: 30, // High FPS for smoother scanning
-        aspectRatio: 1.0,
+        // aspectRatio: 1.0, // REMOVED: Allow full screen checks
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
         },
@@ -337,14 +337,47 @@ function startScanner() {
             onScanSuccess(decodedText, decodedResult);
         },
         (errorMessage) => {
-            // log("Scanning... " + errorMessage); // Too verbose to log every frame error
+            // log("Scanning... " + errorMessage); 
         }
     ).then(() => {
         isScanning = true;
         log("Scanner started! Point at a QR code.");
-        // Add visual feedback that scanner is active
         const reader = document.getElementById("qr-reader");
         if (reader) reader.style.border = "2px solid #2ecc71";
+
+        // ADD ZOOM SLIDER LOGIC
+        // Check if zoom is supported
+        const videoTrack = html5QrCode.getRunningTrackCameraCapabilities()[0];
+        // Note: html5-qrcode might not expose track directly easily, but let's try standard way
+        // Actually html5-qrcode has applyVideoConstraints
+
+        // Let's create a zoom slider if not exists
+        let zoomControl = document.getElementById("zoom-control");
+        if (!zoomControl) {
+            const container = document.querySelector(".scanner-container");
+            zoomControl = document.createElement("div");
+            zoomControl.id = "zoom-control";
+            zoomControl.style.marginTop = "10px";
+            zoomControl.innerHTML = `
+                <label for="zoom-slider">Zoom: <span id="zoom-value">1x</span></label>
+                <input type="range" id="zoom-slider" min="1" max="5" step="0.1" value="1" style="width: 100%;">
+            `;
+            // Insert before debug log
+            const debugLog = document.getElementById("debug-log");
+            container.insertBefore(zoomControl, debugLog);
+
+            const slider = document.getElementById("zoom-slider");
+            const zoomValue = document.getElementById("zoom-value");
+
+            slider.oninput = function () {
+                const zoom = Number(this.value);
+                zoomValue.innerText = zoom + "x";
+                html5QrCode.applyVideoConstraints({
+                    advanced: [{ zoom: zoom }]
+                });
+            };
+        }
+
     }).catch(err => {
         log("FATAL ERROR: " + err);
         console.error("Camera error details:", err);
