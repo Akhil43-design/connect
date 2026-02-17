@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Store Dashboard - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Store Owner Dashboard</h1>
+    </div>
+
+    <!-- Store Registration Section -->
+    <div id="store-registration" class="card">
+        <h2>Register Your Store</h2>
+        <form onsubmit="handleStoreRegistration(event)">
+            <div class="form-group">
+                <label>Store Name</label>
+                <input type="text" id="store-name" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="store-description" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Register Store</button>
+        </form>
+    </div>
+
+    <!-- Store Management Section -->
+    <div id="store-management" style="display: none;">
+        <div class="card">
+            <h2>Product Management</h2>
+            <button onclick="showAddProductForm()" class="btn-primary">Add New Product</button>
+        </div>
+
+        <!-- Add Product Form -->
+        <div id="add-product-form" class="card" style="display: none;">
+            <h3>Add New Product</h3>
+            <form onsubmit="handleAddProduct(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Product Name</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Price</label>
+                        <input type="number" id="product-price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Size</label>
+                        <input type="text" id="product-size">
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="text" id="product-color">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" id="product-stock" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="text" id="product-image">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="product-description" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Product</button>
+                    <button type="button" onclick="hideAddProductForm()" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Products List -->
+        <div class="card">
+            <h3>Your Products</h3>
+            <div id="products-list" class="grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="card">
+            <h3>Analytics</h3>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Total Orders</h4>
+                    <p id="total-orders" class="analytics-number">0</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Most Scanned Products</h4>
+                    <div id="most-scanned"></div>
+                </div>
+                <div class="analytics-card">
+                    <h4>Most Requested Products</h4>
+                    <div id="most-requested"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/store.js') }}"></script>
+{% endblock %}

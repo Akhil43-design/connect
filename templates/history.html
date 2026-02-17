@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Scanned History - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Scanned Product History</h1>
+        <p>Products you've scanned with QR codes</p>
+    </div>
+
+    <div id="history-list" class="grid">
+        <!-- History items will be loaded here -->
+    </div>
+
+    <div id="no-history" class="empty-state" style="display: none;">
+        <h3>No scanned products yet</h3>
+        <p>Scan product QR codes to see them here!</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+{% endblock %}

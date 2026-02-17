@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <div class="hero-section">
+        <h1>Welcome to Smart QR Shopping</h1>
+        <p>The modern way to shop and manage your store</p>
+    </div>
+
+    <div class="role-selection">
+        <div class="role-card customer-card">
+            <div class="card-icon">🛍️</div>
+            <h2>For Customers</h2>
+            <p>Browse stores, scan QR codes, and shop with ease.</p>
+            <a href="{{ url_for('login', role='customer') }}" class="btn-primary">Customer Login</a>
+        </div>
+
+        <div class="role-card store-card">
+            <div class="card-icon">🏪</div>
+            <h2>For Store Owners</h2>
+            <p>Manage your products, track orders, and grow your business.</p>
+            <a href="{{ url_for('login', role='store_owner') }}" class="btn-secondary">Store Owner Login</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .landing-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .hero-section {
+        margin-bottom: 50px;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        color: #666;
+    }
+
+    .role-selection {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .role-card {
+        flex: 1;
+        min-width: 300px;
+        max-width: 400px;
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .role-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    .role-card h2 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+    }
+
+    .role-card p {
+        color: #7f8c8d;
+        margin-bottom: 25px;
+    }
+
+    .btn-primary, .btn-secondary {
+        display: inline-block;
+        padding: 12px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+
+    .btn-secondary {
+        background-color: #27ae60;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background-color: #2ecc71;
+    }
+</style>
+{% endblock %}

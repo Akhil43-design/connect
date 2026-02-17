@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Stores - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Browse Stores</h1>
+        <p>Welcome, <strong>{{ session.email }}</strong>! Discover amazing products.</p>
+        <button onclick="openScanner()" class="btn-scanner">📷 Scan QR Code</button>
+    </div>
+
+    <div id="stores-grid" class="grid">
+        <!-- Stores will be loaded here dynamically -->
+    </div>
+
+    <div id="no-stores" class="empty-state" style="display: none;">
+        <h3>No stores available yet</h3>
+        <p>Check back soon for new stores!</p>
+    </div>
+</div>
+
+<!-- QR Scanner Modal -->
+<div id="scanner-modal" class="scanner-modal">
+    <div class="scanner-container">
+        <div class="scanner-header">
+            <h2>Scan QR Code</h2>
+            <button onclick="closeScanner()" class="btn-close">✕</button>
+        </div>
+        <div id="qr-reader"></div>
+        <div class="scanner-instructions">
+            <p>Point your camera at a product QR code</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+{% endblock %}

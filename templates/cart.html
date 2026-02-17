@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Shopping Cart</h1>
+    </div>
+
+    <div id="cart-items" class="cart-container">
+        <!-- Cart items will be loaded here -->
+    </div>
+
+    <div id="empty-cart" class="empty-state" style="display: none;">
+        <h3>Your cart is empty</h3>
+        <p>Start shopping to add items to your cart!</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn-primary">Browse Stores</a>
+    </div>
+
+    <div id="cart-summary" class="cart-summary" style="display: none;">
+        <h3>Order Summary</h3>
+        <div class="summary-row">
+            <span>Total Items:</span>
+            <span id="total-items">0</span>
+        </div>
+        <div class="summary-row total">
+            <span>Total:</span>
+            <span id="total-price">$0.00</span>
+        </div>
+        <button onclick="proceedToCheckout()" class="btn-primary btn-block">Proceed to Checkout</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}

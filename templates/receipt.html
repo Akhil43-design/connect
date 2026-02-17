@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Order Receipt - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="receipt-container card">
+        <div class="receipt-header">
+            <h1>✅ Order Confirmed!</h1>
+            <p>Thank you for your purchase</p>
+        </div>
+
+        <div id="receipt-details">
+            <!-- Receipt details will be loaded here -->
+        </div>
+
+        <div class="receipt-actions">
+            <a href="{{ url_for('customer_dashboard') }}" class="btn-primary">Continue Shopping</a>
+            <button onclick="window.print()" class="btn-secondary">Print Receipt</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const orderId = "{{ order_id }}";
+</script>
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}

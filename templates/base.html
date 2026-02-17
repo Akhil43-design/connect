@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Smart QR Shopping{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>🛒 Smart QR Shopping</h2>
+            </div>
+            <div class="nav-links">
+                {% if session.user_id %}
+                    {% if session.role == 'customer' %}
+                        <a href="{{ url_for('customer_dashboard') }}">Stores</a>
+                        <a href="{{ url_for('cart') }}">Cart</a>
+                        <a href="{{ url_for('history') }}">History</a>
+                    {% elif session.role == 'store_owner' %}
+                        <a href="{{ url_for('store_dashboard') }}">Dashboard</a>
+                    {% endif %}
+                    <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Smart QR Shopping. All rights reserved.</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

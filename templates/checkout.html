@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Checkout</h1>
+    </div>
+
+    <div class="checkout-container">
+        <div class="checkout-form card">
+            <h2>Delivery Information</h2>
+            <form onsubmit="handleCheckout(event)">
+                <div class="form-group">
+                    <label>Delivery Method</label>
+                    <select id="delivery-method" onchange="toggleAddress()" required>
+                        <option value="">Select delivery method</option>
+                        <option value="home_delivery">Home Delivery</option>
+                        <option value="self_pickup">Self Pickup</option>
+                    </select>
+                </div>
+
+                <div id="address-section" class="form-group" style="display: none;">
+                    <label>Delivery Address</label>
+                    <textarea id="delivery-address" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <h3>Payment Simulation</h3>
+                    <p class="info-text">This is a demo payment. No actual transaction will occur.</p>
+                    <div class="payment-info">
+                        <label>
+                            <input type="radio" name="payment" value="card" checked>
+                            Credit/Debit Card
+                        </label>
+                        <label>
+                            <input type="radio" name="payment" value="cash">
+                            Cash on Delivery
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-block">Place Order</button>
+            </form>
+        </div>
+
+        <div class="order-summary card">
+            <h2>Order Summary</h2>
+            <div id="checkout-items"></div>
+            <div class="summary-total">
+                <strong>Total: <span id="checkout-total">$0.00</span></strong>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+{% endblock %}

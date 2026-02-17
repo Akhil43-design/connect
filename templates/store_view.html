@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Store Products - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 id="store-name">Store Products</h1>
+        <p id="store-description"></p>
+    </div>
+
+    <div id="products-grid" class="grid">
+        <!-- Products will be loaded here -->
+    </div>
+
+    <div id="no-products" class="empty-state" style="display: none;">
+        <h3>No products available</h3>
+        <p>This store hasn't added any products yet.</p>
+        <button onclick="requestProduct()" class="btn-primary">Request a Product</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const storeId = "{{ store_id }}";
+</script>
+<script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+{% endblock %}
