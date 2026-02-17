@@ -324,11 +324,16 @@ function onScanSuccess(decodedText, decodedResult) {
             // Handle different URL structures if necessary, but standard is /store/SID/product/PID
             let storeId, productId;
 
-            if (pathParts.includes('store') && pathParts.includes('product')) {
-                const storeIndex = pathParts.indexOf('store');
-                storeId = pathParts[storeIndex + 1];
-                productId = pathParts[storeIndex + 3];
-            } else if (pathParts.includes('api') && pathParts.includes('qr')) {
+            // Try to find 'store' and 'product' in path parts
+            const storeTokenIndex = pathParts.indexOf('store');
+            const productTokenIndex = pathParts.indexOf('product');
+
+            if (storeTokenIndex !== -1 && productTokenIndex !== -1 && productTokenIndex > storeTokenIndex) {
+                storeId = pathParts[storeTokenIndex + 1];
+                productId = pathParts[productTokenIndex + 1];
+            }
+            // Also check for /api/qr/SID/PID format
+            else if (pathParts.includes('api') && pathParts.includes('qr')) {
                 const qrIndex = pathParts.indexOf('qr');
                 storeId = pathParts[qrIndex + 1];
                 productId = pathParts[qrIndex + 2];
