@@ -40,3 +40,30 @@ class QRGenerator:
         
         # Return Data URI
         return f"data:image/png;base64,{img_str}"
+
+    def generate_qr_stream(self, store_id, product_id):
+        """
+        Generate QR code as a byte stream for dynamic serving
+        """
+        # Construct product URL
+        product_url = f"{self.base_url}/store/{store_id}/product/{product_id}"
+        
+        # Create QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(product_url)
+        qr.make(fit=True)
+        
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save to memory buffer
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        buffer.seek(0)
+        
+        return buffer

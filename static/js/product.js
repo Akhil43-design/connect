@@ -32,7 +32,7 @@ async function loadProductDetails() {
                     
                     <div class="qr-code-section" style="margin: 20px 0; text-align: center;">
                         <p><strong>Scan to Store</strong></p>
-                        <img src="${product.qr_code}" alt="Product QR Code" style="max-width: 150px; border: 1px solid #ddd; padding: 5px;">
+                        <img src="/api/qr/${storeId}/${productId}" alt="Product QR Code" style="max-width: 150px; border: 1px solid #ddd; padding: 5px;">
                     </div>
                     
                     <p>${product.description || 'No description available'}</p>

@@ -3,7 +3,7 @@ Smart QR Shopping Website - Flask Application
 Main application file with all routes and API endpoints
 """
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 from firebase_service import FirebaseService
 from qr_generator import QRGenerator
 import uuid
@@ -285,11 +285,8 @@ def products_api(store_id):
             product_id = str(uuid.uuid4())
             
             # Generate QR code
-            try:
-                qr_path = qr_gen.generate_product_qr(store_id, product_id)
-            except Exception as e:
-                print(f"Error generating QR code: {e}")
-                return jsonify({'error': f"QR Code generation failed: {str(e)}"}), 500
+            # Generate dynamic QR URL
+            qr_path = f"/api/qr/{store_id}/{product_id}"
             
             product_data = {
                 'id': product_id,
@@ -501,6 +498,20 @@ def analytics_api(store_id):
     return jsonify(analytics)
 
 # ========== RUN APPLICATION ==========
+
+@app.route('/api/qr/<store_id>/<product_id>')
+def get_qr_code(store_id, product_id):
+    """Generate and serve QR code dynamically"""
+    try:
+        buffer = qr_gen.generate_qr_stream(store_id, product_id)
+        return send_file(
+            buffer,
+            mimetype='image/png',
+            as_attachment=False,
+            download_name=f'{product_id}.png'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("\n" + "="*60)

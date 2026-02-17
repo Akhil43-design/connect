@@ -161,7 +161,7 @@ function createProductManagementCard(productId, product) {
         <div class="product-info">Stock: ${product.stock} | Scans: ${product.scan_count || 0}</div>
         <div class="qr-code-container">
             <p><strong>QR Code:</strong></p>
-            <img src="${product.qr_code}" alt="QR Code">
+            <img src="/api/qr/${currentStoreId}/${product.id}" alt="QR Code" loading="lazy"> 
         </div>
         <button class="btn-danger" onclick="deleteProduct('${productId}')">Delete</button>
     `;
