@@ -164,6 +164,7 @@ async function handleCheckout(event) {
             total += item.price * item.quantity;
             items.push({
                 product_id: productId,
+                store_id: item.store_id, // Include store_id
                 product_name: item.product_name,
                 price: item.price,
                 quantity: item.quantity
