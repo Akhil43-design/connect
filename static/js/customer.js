@@ -264,9 +264,32 @@ function scanFromFile(inputElement) {
 
     const imageFile = inputElement.files[0];
 
-    // Scan file
-    const html5QrCode = new Html5Qrcode("qr-reader");
-    html5QrCode.scanFile(imageFile, true)
+    // Stop the running scanner first if it exists
+    if (isScanning && html5QrCode) {
+        console.log("Stopping active camera scanner for file scan...");
+        html5QrCode.stop().then(() => {
+            isScanning = false;
+            html5QrCode.clear();
+            processFile(imageFile);
+        }).catch(err => {
+            console.error("Error stopping scanner for file scan:", err);
+            // Try to process anyway
+            processFile(imageFile);
+        });
+    } else {
+        processFile(imageFile);
+    }
+}
+
+function processFile(imageFile) {
+    // Create a new instance for file scanning 
+    // We can't reuse the same element ID if it was just cleared, 
+    // but scanFile works without mounting to DOM if we use the class statically or a dummy element.
+    // Actually, Html5Qrcode.scanFile is an instance method.
+    // We need to re-instantiate it.
+
+    const fileScanner = new Html5Qrcode("qr-reader");
+    fileScanner.scanFile(imageFile, true)
         .then(decodedText => {
             // Success
             console.log("File Scan Success:", decodedText);
@@ -275,7 +298,7 @@ function scanFromFile(inputElement) {
         .catch(err => {
             // Failure
             console.error("Error scanning file:", err);
-            alert("Could not scan QR code from file.\nMake sure the image is clear and contains a valid QR code.");
+            alert("Could not scan QR code from file.\n\nTip: Ensure good lighting and crop the image to just the QR code.");
         });
 }
 
