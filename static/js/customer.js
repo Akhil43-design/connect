@@ -304,7 +304,10 @@ function startScanner() {
     };
 
     html5QrCode.start(
-        { facingMode: "environment" }, // Use rear camera
+        {
+            facingMode: "environment",
+            focusMode: "continuous" // Try to force continuous autofocus
+        },
         config,
         (decodedText, decodedResult) => {
             log("SUCCESS: " + decodedText);

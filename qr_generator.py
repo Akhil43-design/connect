@@ -14,8 +14,8 @@ class QRGenerator:
         Generate QR code for a product
         Returns the Base64 Data URI of the QR code image
         """
-        # Construct product URL
-        product_url = f"{self.base_url}/store/{store_id}/product/{product_id}"
+        # Construct product URL (Relative path for simpler QR code)
+        product_url = f"/store/{store_id}/product/{product_id}"
         
         # Create QR code
         qr = qrcode.QRCode(
@@ -45,8 +45,8 @@ class QRGenerator:
         """
         Generate QR code as a byte stream for dynamic serving
         """
-        # Construct product URL
-        product_url = f"{self.base_url}/store/{store_id}/product/{product_id}"
+        # Construct product URL (Relative path for simpler QR code)
+        product_url = f"/store/{store_id}/product/{product_id}"
         
         # Create QR code
         qr = qrcode.QRCode(
