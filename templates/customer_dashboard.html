@@ -8,6 +8,8 @@
         <h1>Browse Stores</h1>
         <p>Welcome, <strong>{{ session.email }}</strong>! Discover amazing products.</p>
         <button onclick="openScanner()" class="btn-scanner">📷 Scan QR Code</button>
+        <button onclick="manualEnterCode()" class="btn-secondary"
+            style="margin-left: 10px; padding: 10px 20px; border-radius: 25px;">⌨️ Enter Code</button>
     </div>
 
     <div id="stores-grid" class="grid">

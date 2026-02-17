@@ -456,6 +456,14 @@ function showScanSuccess() {
 }
 
 // Close scanner/modal when clicking outside
+// Manual enter code (fallback)
+function manualEnterCode() {
+    const code = prompt("Enter the QR Code URL or Text:");
+    if (code) {
+        onScanSuccess(code, null);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const scannerModal = document.getElementById('scanner-modal');
     if (scannerModal) {
