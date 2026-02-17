@@ -259,8 +259,11 @@ class FirebaseService:
         
         requested_products.sort(key=lambda x: x['count'], reverse=True)
         
+        # Get store orders
+        orders = self.get_store_orders(store_id)
+        
         return {
-            'total_orders': 0,  # Will be calculated from orders
+            'total_orders': len(orders) if orders else 0,
             'most_scanned': scanned_products[:5],
             'most_requested': requested_products[:5]
         }

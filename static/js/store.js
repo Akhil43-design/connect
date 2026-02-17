@@ -268,18 +268,40 @@ async function loadOrders() {
             const orderCard = document.createElement('div');
             orderCard.className = 'order-card';
             orderCard.style.border = '1px solid #ddd';
-            orderCard.style.padding = '10px';
-            orderCard.style.marginBottom = '10px';
-            orderCard.style.borderRadius = '5px';
-            orderCard.style.backgroundColor = '#f9f9f9';
+            orderCard.style.padding = '15px';
+            orderCard.style.marginBottom = '15px';
+            orderCard.style.borderRadius = '8px';
+            orderCard.style.backgroundColor = '#fff';
+            orderCard.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+
+            // Build items list
+            let itemsHtml = '';
+            if (order.items && order.items.length > 0) {
+                itemsHtml = '<ul style="margin: 10px 0; padding-left: 20px; color: #555;">' +
+                    order.items.map(item => `<li>${item.quantity}x <strong>${item.name || item.product_name}</strong> - $${parseFloat(item.price).toFixed(2)}</li>`).join('') +
+                    '</ul>';
+            } else {
+                itemsHtml = '<p style="color: #999; font-style: italic;">No item details available</p>';
+            }
+
+            // Customer info
+            const customerInfo = order.customer_email ? `<p><strong>Customer:</strong> ${order.customer_email}</p>` : '';
 
             orderCard.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong>Order #${order.id.substring(0, 8)}</strong>
-                    <span class="badge badge-success">${order.status}</span>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                    <div>
+                        <strong style="font-size: 1.1em; color: #2c3e50;">Order #${order.id.substring(0, 8)}</strong>
+                        <div style="font-size: 0.9em; color: #7f8c8d;">${date}</div>
+                    </div>
+                    <span class="badge badge-success" style="background: #27ae60; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em;">${order.status}</span>
                 </div>
-                <p>Total: $${parseFloat(order.total).toFixed(2)}</p>
-                <p><small>${date}</small></p>
+                ${customerInfo}
+                <div style="background: #f9f9f9; padding: 10px; border-radius: 4px;">
+                    ${itemsHtml}
+                </div>
+                <div style="margin-top: 10px; text-align: right; font-size: 1.2em; color: #2c3e50;">
+                    <strong>Total: $${parseFloat(order.total).toFixed(2)}</strong>
+                </div>
             `;
             ordersList.appendChild(orderCard);
         }

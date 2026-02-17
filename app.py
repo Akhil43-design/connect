@@ -432,15 +432,32 @@ def create_order_api():
     
     # Add to relevant stores
     items = data.get('items', [])
-    store_ids = set()
+    store_orders = {}
+    
+    # Group items by store
     for item in items:
-        if 'store_id' in item:
-            store_ids.add(item['store_id'])
+        store_id = item.get('store_id')
+        if store_id:
+            if store_id not in store_orders:
+                store_orders[store_id] = {
+                    'items': [],
+                    'total': 0
+                }
             
-    for store_id in store_ids:
+            store_orders[store_id]['items'].append(item)
+            # Calculate store-specific total
+            item_total = float(item.get('price', 0)) * int(item.get('quantity', 1))
+            store_orders[store_id]['total'] += item_total
+            
+    # Get customer email
+    customer_email = session.get('email', 'Unknown')
+
+    for store_id, store_data in store_orders.items():
         firebase.add_order_to_store(store_id, order_id, {
             'user_id': user_id,
-            'total': data.get('total'),
+            'customer_email': customer_email,
+            'items': store_data['items'],
+            'total': store_data['total'],
             'status': 'confirmed',
             'created_at': datetime.now().isoformat()
         })
