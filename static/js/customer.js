@@ -300,14 +300,15 @@ function startScanner() {
         aspectRatio: 1.0,
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
+        },
+        videoConstraints: {
+            facingMode: "environment",
+            focusMode: "continuous"
         }
     };
 
     html5QrCode.start(
-        {
-            facingMode: "environment",
-            focusMode: "continuous" // Try to force continuous autofocus
-        },
+        { facingMode: "environment" }, // Must have exactly 1 key if object
         config,
         (decodedText, decodedResult) => {
             log("SUCCESS: " + decodedText);
