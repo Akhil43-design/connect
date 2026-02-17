@@ -417,6 +417,21 @@ def create_order_api():
         'created_at': datetime.now().isoformat()
     })
     
+    # Add to relevant stores
+    items = data.get('items', [])
+    store_ids = set()
+    for item in items:
+        if 'store_id' in item:
+            store_ids.add(item['store_id'])
+            
+    for store_id in store_ids:
+        firebase.add_order_to_store(store_id, order_id, {
+            'user_id': user_id,
+            'total': data.get('total'),
+            'status': 'confirmed',
+            'created_at': datetime.now().isoformat()
+        })
+    
     # Clear cart
     firebase.clear_cart(user_id)
     
@@ -435,6 +450,14 @@ def get_order_api(order_id):
     import requests
     order = requests.get(response).json()
     return jsonify(order)
+
+@app.route('/api/stores/<store_id>/orders', methods=['GET'])
+@login_required
+@role_required('store_owner')
+def get_store_orders_api(store_id):
+    """Get orders for a specific store"""
+    orders = firebase.get_store_orders(store_id)
+    return jsonify(orders)
 
 # History APIs
 @app.route('/api/history', methods=['GET'])

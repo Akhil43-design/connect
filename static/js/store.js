@@ -22,6 +22,7 @@ async function checkStoreRegistration() {
             showStoreManagement();
             loadProducts();
             loadAnalytics();
+            loadOrders();
         } else {
             showStoreRegistration();
         }
@@ -227,3 +228,54 @@ async function loadAnalytics() {
         console.error('Error loading analytics:', error);
     }
 }
+// Load orders
+async function loadOrders() {
+    try {
+        const response = await fetch(`/api/stores/${currentStoreId}/orders`);
+        const orders = await response.json();
+
+        const ordersList = document.getElementById('orders-list');
+        ordersList.innerHTML = '';
+
+        if (!orders || Object.keys(orders).length === 0) {
+            ordersList.innerHTML = '<p>No new orders yet.</p>';
+            return;
+        }
+
+        // Convert to array and sort by date descending
+        const ordersArray = Object.entries(orders).map(([id, data]) => ({
+            id,
+            ...data
+        })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        for (const order of ordersArray) {
+            const date = new Date(order.created_at).toLocaleString();
+            const orderCard = document.createElement('div');
+            orderCard.className = 'order-card';
+            orderCard.style.border = '1px solid #ddd';
+            orderCard.style.padding = '10px';
+            orderCard.style.marginBottom = '10px';
+            orderCard.style.borderRadius = '5px';
+            orderCard.style.backgroundColor = '#f9f9f9';
+
+            orderCard.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong>Order #${order.id.substring(0, 8)}</strong>
+                    <span class="badge badge-success">${order.status}</span>
+                </div>
+                <p>Total: $${parseFloat(order.total).toFixed(2)}</p>
+                <p><small>${date}</small></p>
+            `;
+            ordersList.appendChild(orderCard);
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
+// Poll for orders every 10 seconds
+setInterval(() => {
+    if (currentStoreId) {
+        loadOrders();
+    }
+}, 10000);

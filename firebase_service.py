@@ -166,6 +166,19 @@ class FirebaseService:
         url = self._get_url(f"users/{user_id}/orders/{order_id}")
         response = requests.put(url, json=order_data)
         return response.json()
+
+    def add_order_to_store(self, store_id, order_id, order_data):
+        """Add order reference to store"""
+        url = self._get_url(f"stores/{store_id}/orders/{order_id}")
+        response = requests.put(url, json=order_data)
+        return response.json()
+        
+    def get_store_orders(self, store_id):
+        """Get all orders for a store"""
+        url = self._get_url(f"stores/{store_id}/orders")
+        response = requests.get(url)
+        orders = response.json()
+        return orders if orders else {}
     
     # ========== PRODUCT REQUEST OPERATIONS ==========
     
