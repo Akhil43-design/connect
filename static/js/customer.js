@@ -295,20 +295,21 @@ function startScanner() {
     html5QrCode = new Html5Qrcode("qr-reader");
 
     const config = {
-        fps: 10,
-        // qrbox: { width: 250, height: 250 }, // REMOVED: Scan full frame to fixing detection issues
+        fps: 30, // High FPS for smoother scanning
         aspectRatio: 1.0,
         experimentalFeatures: {
             useBarCodeDetectorIfSupported: true
         },
         videoConstraints: {
             facingMode: "environment",
-            focusMode: "continuous"
+            focusMode: "continuous",
+            width: { min: 640, ideal: 1280, max: 1920 }, // Force higher resolution
+            height: { min: 480, ideal: 720, max: 1080 }
         }
     };
 
     html5QrCode.start(
-        { facingMode: "environment" }, // Must have exactly 1 key if object
+        { facingMode: "environment" },
         config,
         (decodedText, decodedResult) => {
             log("SUCCESS: " + decodedText);
