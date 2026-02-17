@@ -200,6 +200,22 @@ def request_product(store_id):
     """Product request form"""
     return render_template('request_product.html', store_id=store_id)
 
+@app.route('/orders')
+@login_required
+@role_required('customer')
+def orders():
+    """Customer orders page"""
+    return render_template('orders.html')
+
+@app.route('/api/my-orders', methods=['GET'])
+@login_required
+@role_required('customer')
+def my_orders_api():
+    """Get orders for current user"""
+    user_id = session['user_id']
+    orders = firebase.get_user_orders(user_id)
+    return jsonify(orders)
+
 # ========== STORE OWNER ROUTES ==========
 
 @app.route('/store/dashboard')

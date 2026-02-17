@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Smart QR Shopping{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>My Orders</h1>
+        <p>View and track your past purchases</p>
+    </div>
+
+    <div id="orders-list" class="cart-container">
+        <!-- Orders will be loaded here -->
+    </div>
+
+    <div id="no-orders" class="empty-state" style="display: none;">
+        <h3>No orders yet</h3>
+        <p>You haven't placed any orders yet.</p>
+        <a href="{{ url_for('customer_dashboard') }}" class="btn-primary">Start Shopping</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/customer.js') }}"></script>
+{% endblock %}

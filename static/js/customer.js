@@ -15,6 +15,11 @@ if (window.location.pathname.includes('/store/') && !window.location.pathname.in
     loadStoreProducts();
 }
 
+// Load user orders
+if (window.location.pathname === '/orders') {
+    loadUserOrders();
+}
+
 // Load all stores
 async function loadStores() {
     try {
@@ -149,6 +154,69 @@ function createHistoryCard(productId, item) {
         <button class="btn-primary" onclick="event.stopPropagation(); window.location.href='/store/${item.store_id}/product/${productId}'">
             View Again
         </button>
+    `;
+
+    return card;
+}
+
+// Load user orders
+async function loadUserOrders() {
+    try {
+        const response = await fetch('/api/my-orders');
+        const orders = await response.json();
+
+        const ordersList = document.getElementById('orders-list');
+        const noOrders = document.getElementById('no-orders');
+
+        if (!orders || Object.keys(orders).length === 0) {
+            ordersList.style.display = 'none';
+            noOrders.style.display = 'block';
+            return;
+        }
+
+        ordersList.innerHTML = '';
+
+        // Convert to array and sort by date descending
+        const ordersArray = Object.entries(orders).map(([id, data]) => ({
+            id,
+            ...data
+        })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        for (const order of ordersArray) {
+            const orderCard = createOrderCard(order);
+            ordersList.appendChild(orderCard);
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
+// Create order card
+function createOrderCard(order) {
+    const card = document.createElement('div');
+    card.className = 'cart-item'; // Reuse cart item styling
+    card.style.flexDirection = 'column';
+    card.style.alignItems = 'flex-start';
+
+    const date = new Date(order.created_at).toLocaleString();
+
+    // Check if items exist (for older orders they might not be directly in the user order ref)
+    // We might need to fetch full order details if we want items, but for now let's show total and date
+    // The user node only has total and created_at usually. 
+    // Wait, the firebase_service.add_order_to_user only saves total and created_at.
+    // If user wants to see items, we should link to receipt or fetch full order.
+    // Let's add a "View Receipt" button.
+
+    card.innerHTML = `
+        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3>Order #${order.id.substring(0, 8)}</h3>
+            <span class="badge badge-success" style="background: #27ae60; color: white; padding: 5px 10px; border-radius: 15px;">Confirmed</span>
+        </div>
+        <div style="width: 100%; display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span><strong>Date:</strong> ${date}</span>
+            <span><strong>Total:</strong> $${parseFloat(order.total).toFixed(2)}</span>
+        </div>
+        <button class="btn-primary" onclick="window.location.href='/receipt/${order.id}'">View Receipt</button>
     `;
 
     return card;
