@@ -197,68 +197,67 @@ function onScanFailure(error) {
 function handleScannedData(data) {
     console.log("Scanned:", data);
 
-    let productData = {};
+    let storeId, productId;
 
+    // 1. Try JSON parsing (New QRs)
     try {
-        // Try parsing JSON first (User Request Format)
-        // { "name": "Milk Packet", "price": "₹45", "weight": "500ml", "store": "Akhil Mart" }
-        productData = JSON.parse(data);
-        showProductModal(productData);
-    } catch (e) {
-        // Not JSON, try URL Parsing (Legacy/Fallback)
-        if (data.includes('/store/') && data.includes('/product/')) {
-            // Fetch from API
-            fetchProductFromUrl(data);
+        const productData = JSON.parse(data);
+        if (productData.store_id && productData.id) {
+            storeId = productData.store_id;
+            productId = productData.id;
         } else {
-            alert("Invalid QR Code format.\nData: " + data);
-            resetScanner();
+            throw new Error("Missing IDs in JSON");
         }
+    } catch (e) {
+        // 2. Try URL parsing (Legacy/Fallback)
+        if (data.includes('/store/') && data.includes('/product/')) {
+            // Extract IDs from URL string
+            const parts = data.split('/');
+            const sIdx = parts.indexOf('store');
+            const pIdx = parts.indexOf('product');
+
+            if (sIdx !== -1 && pIdx !== -1) {
+                storeId = parts[sIdx + 1];
+                productId = parts[pIdx + 1];
+            }
+        }
+    }
+
+    if (storeId && productId) {
+        // FETCH FROM BACKEND to ensure:
+        // 1. Scan count increments
+        // 2. Data is latest (stock, price)
+        // 3. User history is updated
+        fetchProductDetails(storeId, productId);
+    } else {
+        alert("Invalid QR Code.\nData: " + data);
+        resetScanner();
     }
 }
 
-async function fetchProductFromUrl(urlStr) {
+async function fetchProductDetails(storeId, productId) {
     try {
-        // Extract IDs from URL like /store/1/product/5
-        // Handle relative or absolute
-        let path = urlStr;
-        if (urlStr.startsWith('http')) {
-            const urlObj = new URL(urlStr);
-            path = urlObj.pathname;
-        }
-
-        const parts = path.split('/');
-        const storeIdx = parts.indexOf('store');
-        const prodIdx = parts.indexOf('product');
-
-        if (storeIdx === -1 || prodIdx === -1) throw new Error("Invalid URL path");
-
-        const storeId = parts[storeIdx + 1];
-        const productId = parts[prodIdx + 1];
-
-        // Fetch from backend
         const res = await fetch(`/api/stores/${storeId}/products/${productId}`);
         const product = await res.json();
 
         if (product.error) throw new Error(product.error);
 
-        // Normalize data to standard format
         const displayData = {
             id: productId,
             store_id: storeId,
             name: product.name,
-            price: `₹${product.price}`, // Assuming backend returns number
+            price: `₹${product.price}`,
             weight: product.size || 'N/A',
-            store: 'Connected Store', // We might need to fetch store name too
+            store: 'Connect Store', // Placeholder, could be fetched
             image: product.image
         };
 
-        // Attach raw data for 'Add to Cart'
         currentProduct = displayData;
         showProductModal(displayData);
 
     } catch (err) {
         console.error(err);
-        alert("Failed to fetch product details.");
+        alert("Failed to load product. Please check connection.");
         resetScanner();
     }
 }
