@@ -77,7 +77,7 @@ function createOrderCard(order) {
 }
 
 // ==========================================
-// MODERN QR SCANNER LOGIC (V11)
+// MODERN QR SCANNER LOGIC (V12)
 // ==========================================
 
 let html5QrCode;
@@ -86,19 +86,26 @@ let currentProduct = null;
 let soundEnabled = true;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Only start scanner if we are on the dashboard and elements exist
-    if (document.getElementById("qr-reader")) {
-        startScanner();
-    }
+    // We do NOT auto-start anymore to avoid permission blockers.
+    // User must click "Start Camera"
 });
 
 function startScanner() {
     const readerElement = document.getElementById("qr-reader");
     if (!readerElement) return;
 
-    // Show scanning animation
+    // HIDE placeholder, show animation
+    const placeholder = document.getElementById('scanner-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
     const scanLine = document.getElementById('scan-line');
+    const overlay = document.getElementById('scan-overlay');
     if (scanLine) scanLine.style.display = 'block';
+    if (overlay) overlay.style.display = 'block';
+
+    // Clear any previous errors
+    const errorDiv = document.getElementById('scanner-error');
+    if (errorDiv) errorDiv.style.display = 'none';
 
     html5QrCode = new Html5Qrcode("qr-reader");
 
@@ -118,16 +125,33 @@ function startScanner() {
         onScanFailure
     ).catch(err => {
         console.error("Camera start failed", err);
-        const wrapper = document.querySelector('.scanner-wrapper');
-        if (wrapper) {
-            wrapper.innerHTML = `
-                <div style="padding: 20px; text-align: center; color: white;">
-                    <p>Camera access denied or unavailable.</p>
-                    <button class="control-btn" style="margin: 0 auto;" onclick="location.reload()">Retry</button>
-                </div>
-            `;
-        }
+        showCameraError(err);
     });
+}
+
+function showCameraError(err) {
+    const errorDiv = document.getElementById('scanner-error');
+    const errorMsg = document.getElementById('error-message');
+    const placeholder = document.getElementById('scanner-placeholder');
+
+    // Hide scanning visuals
+    document.getElementById('scan-line').style.display = 'none';
+    if (placeholder) placeholder.style.display = 'none';
+
+    // Determine friendly message
+    let msg = "Unable to access camera.";
+    if (err.name === 'NotAllowedError') msg = "Access denied. Please enable camera permissions.";
+    else if (err.name === 'NotFoundError') msg = "No camera found on this device.";
+    else if (err.name === 'NotReadableError') msg = "Camera is being used by another app.";
+    else if (err.name === 'OverconstrainedError') msg = "Camera constraints failed. Try a different device.";
+    else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') msg = "HTTPS is required for camera security.";
+
+    if (errorDiv && errorMsg) {
+        errorDiv.style.display = 'flex';
+        errorMsg.innerHTML = `<strong>${msg}</strong><br><br><small style='opacity:0.7; font-size: 0.8em'>${err.name || err}</small>`;
+    } else {
+        alert(msg + "\n" + err);
+    }
 }
 
 function onScanSuccess(decodedText, decodedResult) {
