@@ -1,61 +1,272 @@
 {% extends "base.html" %}
 
-{% block title %}Browse Stores - Smart QR Shopping{% endblock %}
-
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <h1>Browse Stores</h1>
-        <p>Welcome, <strong>{{ session.email }}</strong>! Discover amazing products.</p>
-        <button onclick="openScanner()" class="btn-scanner">📷 Scan QR Code</button>
-        <button onclick="manualEnterCode()" class="btn-secondary"
-            style="margin-left: 10px; padding: 10px 20px; border-radius: 25px;">⌨️ Enter Code</button>
+<style>
+    :root {
+        --scanner-border-color: #00ff00;
+        --scanner-bg: #000000;
+        --card-bg: #ffffff;
+        --text-color: #333333;
+    }
+
+    body {
+        background-color: #121212;
+        /* Dark theme background */
+        color: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Scanner Container */
+    .scanner-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        background: #000;
+    }
+
+    #qr-reader {
+        width: 100%;
+        border-radius: 20px;
+    }
+
+    /* Custom Scanning Frame Overlay */
+    .scan-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        background:
+            linear-gradient(to right, #000 4px, transparent 4px) 0 0,
+            linear-gradient(to right, #000 4px, transparent 4px) 0 100%,
+            linear-gradient(to left, #000 4px, transparent 4px) 100% 0,
+            linear-gradient(to left, #000 4px, transparent 4px) 100% 100%,
+            linear-gradient(to bottom, #000 4px, transparent 4px) 0 0,
+            linear-gradient(to bottom, #000 4px, transparent 4px) 100% 0,
+            linear-gradient(to top, #000 4px, transparent 4px) 0 100%,
+            linear-gradient(to top, #000 4px, transparent 4px) 100% 100%;
+        background-repeat: no-repeat;
+        background-size: 40px 40px;
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Glowing Line Animation */
+    .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: #00ff00;
+        box-shadow: 0 0 10px #00ff00;
+        top: 0;
+        animation: scanAnim 2s infinite linear;
+        display: none;
+        /* Shown when scanning */
+    }
+
+    @keyframes scanAnim {
+        0% {
+            top: 10%;
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        90% {
+            opacity: 1;
+        }
+
+        100% {
+            top: 90%;
+            opacity: 0;
+        }
+    }
+
+    /* Product Card Modal */
+    .product-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .product-card-modern {
+        background: white;
+        color: #333;
+        width: 100%;
+        max-width: 350px;
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .product-card-modern.show {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .product-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .product-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: #000;
+    }
+
+    .product-price {
+        font-size: 2rem;
+        color: #27ae60;
+        font-weight: 800;
+        margin: 10px 0;
+    }
+
+    .product-meta {
+        display: flex;
+        justify-content: space-between;
+        margin: 15px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-add {
+        background: #000;
+        color: white;
+    }
+
+    .btn-reset {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-action:active {
+        transform: scale(0.95);
+    }
+
+    /* Upload & Controls */
+    .scanner-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+    }
+
+    .control-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #file-input {
+        display: none;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-weight: 300; letter-spacing: 1px;">SCANNER</h2>
+        <p style="opacity: 0.7;">Point camera at product QR</p>
     </div>
 
-    <div id="stores-grid" class="grid">
-        <!-- Stores will be loaded here dynamically -->
+    <!-- Scanner Area -->
+    <div class="scanner-wrapper">
+        <div id="qr-reader"></div>
+        <div class="scan-overlay"></div>
+        <div class="scan-line" id="scan-line"></div>
     </div>
 
-    <div id="no-stores" class="empty-state" style="display: none;">
-        <h3>No stores available yet</h3>
-        <p>Check back soon for new stores!</p>
+    <!-- Controls -->
+    <div class="scanner-controls">
+        <button class="control-btn" onclick="document.getElementById('file-input').click()">
+            📁 Upload Image
+        </button>
+        <button class="control-btn" onclick="toggleMute()" id="mute-btn">
+            🔊 Sound On
+        </button>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileScan(this)">
     </div>
+
+    <!-- Hidden Manual Entry -->
+    <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-sm btn-link" style="color: #666;" onclick="manualEntry()">Enter Code Manually</button>
+    </div>
+
 </div>
 
-<!-- QR Scanner Modal -->
-<div id="scanner-modal" class="scanner-modal">
-    <div class="scanner-container">
-        <div class="scanner-header">
-            <h2>Scan QR Code</h2>
-            <button onclick="closeScanner()" class="btn-close">✕</button>
-        </div>
-        <div id="qr-reader"></div>
-        <div class="scanner-instructions">
-            <p>Point your camera at a product QR code</p>
-            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
-                <p style="font-size: 0.9em; margin-bottom: 5px;">Or upload an image:</p>
-                <input type="file" id="qr-input-file" accept="image/*" onchange="scanFromFile(this)">
+<!-- Audio for Beep -->
+<audio id="scan-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+<!-- Result Modal -->
+<div class="product-modal" id="result-modal">
+    <div class="product-card-modern" id="modal-card">
+        <div class="product-icon">📦</div>
+        <div class="product-title" id="p-name">Loading...</div>
+        <div class="product-price" id="p-price">...</div>
+
+        <div class="product-meta">
+            <div>
+                <span style="display:block; opacity:0.5; font-size: 0.8em;">WEIGHT</span>
+                <span id="p-weight" style="font-weight: 600;">-</span>
+            </div>
+            <div>
+                <span style="display:block; opacity:0.5; font-size: 0.8em;">STORE</span>
+                <span id="p-store" style="font-weight: 600;">-</span>
             </div>
         </div>
+
+        <button class="btn-action btn-add" id="btn-add-cart" onclick="addToCart()">
+            ADD TO CART
+        </button>
+        <button class="btn-action btn-reset" onclick="resetScanner()">
+            SCAN NEXT
+        </button>
     </div>
 </div>
 
-<!-- Product Detail Modal -->
-<div id="product-modal" class="scanner-modal" style="display: none; align-items: center; justify-content: center;">
-    <div class="scanner-container" style="max-width: 500px; width: 90%;">
-        <div class="scanner-header">
-            <h2>Product Details</h2>
-            <button onclick="closeProductModal()" class="btn-close">✕</button>
-        </div>
-        <div id="modal-product-content" style="padding: 20px; text-align: center;">
-            <!-- Product details injected here -->
-            <div class="loading-spinner">Loading...</div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script src="{{ url_for('static', filename='js/customer.js') }}?v=10"></script>
+<script src="{{ url_for('static', filename='js/customer.js') }}?v=11"></script>
 {% endblock %}
