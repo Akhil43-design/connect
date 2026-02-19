@@ -358,30 +358,10 @@ async function addToCart() {
     }
 }
 
-function handleFileScan(input) {
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-
-    // Temporarily stop live scan to process file
-    if (html5QrCode && html5QrCode.getState() === 2) { // 2 = SCANNING
-        html5QrCode.pause();
-    }
-
-    html5QrCode.scanFile(file, true)
-        .then(decodedText => {
-            onScanSuccess(decodedText, null);
-        })
-        .catch(err => {
-            alert("Could not read QR from image");
-            if (html5QrCode) html5QrCode.resume();
-        });
-}
-
-function toggleMute() {
-    soundEnabled = !soundEnabled;
-    const btn = document.getElementById('mute-btn');
-    if (btn) btn.textContent = soundEnabled ? "🔊 Sound On" : "🔇 Sound Off";
-}
+// File Scan Handler - Uses Python Backend (Hybrid Mode)
+// File Scan and Sound Toggle removed as per user request
+// function handleFileScan(input) { ... }
+// function toggleMute() { ... }
 
 function manualEntry() {
     const code = prompt("Enter product code/URL:");

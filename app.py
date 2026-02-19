@@ -534,9 +534,27 @@ def analytics_api(store_id):
 
 @app.route('/api/qr/<store_id>/<product_id>')
 def get_qr_code(store_id, product_id):
-    """Generate and serve QR code dynamically"""
+    """Generate and serve QR code dynamically with JSON payload"""
     try:
-        buffer = qr_gen.generate_qr_stream(store_id, product_id)
+        # Fetch actual product details to encode in QR
+        product = firebase.get_product(store_id, product_id)
+        
+        if not product:
+            return jsonify({'error': 'Product not found'}), 404
+            
+        # Create the JSON payload requested by user
+        # Format: { "name": "Milk Packet", "price": "₹45", "weight": "500ml", "store": "Akhil Mart" }
+        payload = {
+            "id": product_id, # Keep ID for API calls
+            "store_id": store_id,
+            "name": product.get('name'),
+            "price": f"₹{product.get('price')}",
+            "weight": product.get('size', ''),
+            "store": "Connect Store", # Should ideally fetch store name
+            "image": product.get('image', '') # Helper for UI
+        }
+        
+        buffer = qr_gen.generate_qr_stream(payload)
         return send_file(
             buffer,
             mimetype='image/png',
