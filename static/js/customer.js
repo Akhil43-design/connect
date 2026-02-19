@@ -86,8 +86,20 @@ let currentProduct = null;
 let soundEnabled = true;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // We do NOT auto-start anymore to avoid permission blockers.
-    // User must click "Start Camera"
+    // Check if library is loaded, if not, load it dynamically
+    if (typeof Html5Qrcode === 'undefined') {
+        console.warn("Html5Qrcode not found, loading dynamically...");
+        const script = document.createElement('script');
+        script.src = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
+        script.onload = () => {
+            console.log("Html5Qrcode loaded dynamically.");
+            // Re-bind buttons if needed or just let user click again
+        };
+        script.onerror = () => {
+            alert("Failed to load QR Scanner library. Please check internet connection.");
+        };
+        document.head.appendChild(script);
+    }
 });
 
 function startScanner() {

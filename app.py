@@ -546,6 +546,59 @@ def get_qr_code(store_id, product_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/scan-qr', methods=['POST'])
+def scan_qr_api():
+    """
+    Process uploaded image for QR codes using Python OpenCV/Pyzbar
+    Requested by user to 'use python' for scanning.
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    try:
+        # Import here to avoid crash if libs missing locally
+        import cv2
+        import numpy as np
+        from pyzbar.pyzbar import decode
+        from PIL import Image
+        import io
+
+        # Read image
+        in_memory_file = io.BytesIO()
+        file.save(in_memory_file)
+        in_memory_file.seek(0)
+        
+        # Convert to numpy array for OpenCV
+        file_bytes = np.asarray(bytearray(in_memory_file.read()), dtype=np.uint8)
+        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        
+        # Decode
+        decoded_objects = decode(img)
+        
+        if not decoded_objects:
+            # Try converting to grayscale
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            decoded_objects = decode(gray)
+
+        if not decoded_objects:
+            return jsonify({'error': 'No QR code detected in image'}), 404
+
+        # Get first result
+        qr_data = decoded_objects[0].data.decode('utf-8')
+        
+        return jsonify({'success': True, 'data': qr_data})
+
+    except ImportError:
+        return jsonify({'error': 'Server missing Python QR libraries (opencv/pyzbar)'}), 500
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f"Processing failed: {str(e)}"}), 500
+
 if __name__ == '__main__':
     print("\n" + "="*60)
     print("🚀 Smart QR Shopping Website - Flask Server")
