@@ -300,9 +300,9 @@ def products_api(store_id):
                 
             product_id = str(uuid.uuid4())
             
-            # Generate STATIC QR code (ID ONLY)
-            # Saves to static/qrcodes/ and returns path
-            qr_path = qr_gen.generate_static_qr(product_id)
+            # Generate DYNAMIC QR code (ID ONLY)
+            # Fixes Vercel 500 Error by avoiding static file write
+            qr_path = f"/api/qr-code/{product_id}"
             
             product_data = {
                 'id': product_id,
@@ -313,7 +313,7 @@ def products_api(store_id):
                 'description': data.get('description', ''),
                 'stock': data.get('stock', 0),
                 'image': data.get('image', ''),
-                'qr_code': qr_path, # Now points to static file
+                'qr_code': qr_path, # Now points to dynamic image route
                 'scan_count': 0,
                 'created_at': datetime.now().isoformat()
             }
@@ -326,8 +326,10 @@ def products_api(store_id):
                 'product': product_data
             })
         except Exception as e:
+            # Return actual error for debugging
             import traceback
             traceback.print_exc()
+            return jsonify({'error': str(e)}), 500
             return jsonify({'error': f"Server Error: {str(e)}"}), 500
 
 @app.route('/api/stores/<store_id>/products/<product_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -582,8 +584,26 @@ def get_qr_code(store_id, product_id):
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.route('/api/scan-qr', methods=['POST'])
+@app.route('/api/qr-code/<product_id>')
+def get_id_qr_code(product_id):
+    """
+    Generate static-like QR code (ID ONLY) dynamically.
+    Fixes Vercel 500 Error (Read-only filesystem).
+    """
+    try:
+        # Generate QR stream with JUST the ID (string)
+        buffer = qr_gen.generate_qr_stream(product_id)
+        return send_file(
+            buffer,
+            mimetype='image/png',
+            as_attachment=False,
+            download_name=f'{product_id}.png'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 def scan_qr_api():
     """
     Process uploaded image for QR codes using Python OpenCV/Pyzbar

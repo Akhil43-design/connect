@@ -225,13 +225,42 @@ function handleScannedData(data) {
     }
 
     if (storeId && productId) {
-        // FETCH FROM BACKEND to ensure:
-        // 1. Scan count increments
-        // 2. Data is latest (stock, price)
-        // 3. User history is updated
+        // FETCH FROM BACKEND
         fetchProductDetails(storeId, productId);
     } else {
-        alert("Invalid QR Code.\nData: " + data);
+        // 3. Assume Plain ID (Static QR Mode or Legacy Barcode)
+        // If it's not JSON and not a URL, it might be a direct ID.
+        // We force this path for EVERYTHING else.
+        console.log("Assuming Plain ID scan:", data);
+        fetchProductByGlobalId(data);
+    }
+}
+
+async function fetchProductByGlobalId(productId) {
+    try {
+        const res = await fetch(`/api/products/${productId}`);
+        const product = await res.json();
+
+        if (product.error || !product.id) throw new Error("Product not found");
+
+        // Normalize
+        const displayData = {
+            id: product.id,
+            store_id: product.store_id,
+            name: product.name,
+            price: `₹${product.price}`,
+            weight: product.size || 'N/A',
+            store: product.store_name || 'Connect Store',
+            image: product.image
+        };
+
+        currentProduct = displayData;
+        showProductModal(displayData);
+
+    } catch (e) {
+        console.error(e);
+        // Only alert if we really can't find it
+        alert("Product not found in system.\nID: " + productId);
         resetScanner();
     }
 }
