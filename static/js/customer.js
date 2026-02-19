@@ -130,6 +130,7 @@ function startScanner() {
         }
     };
 
+    scanned = false; // Reset scan state
     html5QrCode.start(
         { facingMode: "environment" },
         config,

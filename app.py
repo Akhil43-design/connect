@@ -300,9 +300,9 @@ def products_api(store_id):
                 
             product_id = str(uuid.uuid4())
             
-            # Generate QR code
-            # Generate dynamic QR URL
-            qr_path = f"/api/qr/{store_id}/{product_id}"
+            # Generate STATIC QR code (ID ONLY)
+            # Saves to static/qrcodes/ and returns path
+            qr_path = qr_gen.generate_static_qr(product_id)
             
             product_data = {
                 'id': product_id,
@@ -313,7 +313,7 @@ def products_api(store_id):
                 'description': data.get('description', ''),
                 'stock': data.get('stock', 0),
                 'image': data.get('image', ''),
-                'qr_code': qr_path,
+                'qr_code': qr_path, # Now points to static file
                 'scan_count': 0,
                 'created_at': datetime.now().isoformat()
             }
@@ -349,7 +349,7 @@ def product_api(store_id, product_id):
             })
         
         return jsonify(product)
-    
+
     elif request.method == 'PUT':
         data = request.json
         firebase.update_product(store_id, product_id, data)
@@ -358,6 +358,25 @@ def product_api(store_id, product_id):
     elif request.method == 'DELETE':
         firebase.delete_product(store_id, product_id)
         return jsonify({'success': True})
+
+@app.route('/api/products/<product_id>', methods=['GET'])
+def get_global_product(product_id):
+    """Get product by ID only (searches all stores)"""
+    # 1. Search all stores for this ID
+    store_id, product = firebase.get_product_by_global_id(product_id)
+    
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+        
+    # Inject store_id for frontend
+    product['store_id'] = store_id
+    
+    # Try to get store name too
+    store = firebase.get_store(store_id)
+    if store:
+        product['store_name'] = store.get('name')
+        
+    return jsonify(product)
 
 # Cart APIs
 @app.route('/api/cart', methods=['GET', 'POST', 'DELETE'])

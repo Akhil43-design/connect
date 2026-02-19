@@ -103,6 +103,22 @@ class FirebaseService:
         url = self._get_url(f"stores/{store_id}/products/{product_id}")
         response = requests.delete(url)
         return response.status_code == 200
+
+    def get_product_by_global_id(self, product_id):
+        """
+        Find a product by ID across ALL stores (inefficient but necessary for global ID lookup)
+        Returns (store_id, product_data) or (None, None)
+        """
+        all_stores = self.get_all_stores()
+        if not all_stores: return None, None
+        
+        for store_id, store_data in all_stores.items():
+            products = store_data.get('products', {})
+            if product_id in products:
+                # Found it!
+                return store_id, products[product_id]
+        
+        return None, None
     
     # ========== CART OPERATIONS ==========
     

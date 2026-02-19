@@ -57,8 +57,8 @@ class QRGenerator:
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
+            box_size=12,
+            border=2,
         )
         qr.add_data(qr_content)
         qr.make(fit=True)
@@ -70,3 +70,35 @@ class QRGenerator:
         buffer.seek(0)
         
         return buffer
+
+    def generate_static_qr(self, product_id):
+        """
+        Generate static QR code image file (ID only)
+        Saves to static/qrcodes/{product_id}.png
+        Returns relative web path
+        """
+        # Ensure directory exists
+        qr_folder = os.path.join(os.getcwd(), 'static', 'qrcodes')
+        os.makedirs(qr_folder, exist_ok=True)
+        
+        # QR Data = JUST THE ID (as requested)
+        qr_data = str(product_id)
+        
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=12,
+            border=2,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Save file
+        filename = f"{product_id}.png"
+        filepath = os.path.join(qr_folder, filename)
+        img.save(filepath)
+        
+        # Return web path
+        return f"/static/qrcodes/{filename}"
