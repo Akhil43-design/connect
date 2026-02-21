@@ -204,50 +204,31 @@
 </style>
 
 <div class="container-fluid p-0">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="font-weight: 300; letter-spacing: 1px;">SCANNER</h2>
-        <p style="opacity: 0.7;">Point camera at product QR</p>
-    </div>
-
-    <!-- Scanner Area -->
-    <div class="scanner-wrapper">
-        <div id="qr-reader" style="width: 100%; min-height: 300px; background: #000; position: relative;">
-            <!-- Initial State: Start Button -->
-            <div id="scanner-placeholder"
-                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10;">
-                <button class="control-btn" onclick="startScanner()"
-                    style="font-size: 1.2rem; padding: 15px 30px; background: #27ae60; border-color: #27ae60;">
-                    📷 Start Camera
-                </button>
-                <p style="margin-top: 15px; color: #aaa; font-size: 0.9rem;">Tap to enable camera access</p>
-            </div>
-            <!-- Error State -->
-            <div id="scanner-error"
-                style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; flex-direction: column; padding: 20px; z-index: 20; background: #1a1a1a;">
-                <p id="error-message" style="color: #ff6b6b; text-align: center; margin-bottom: 20px;">Camera Error</p>
-                <button class="control-btn" onclick="location.reload()">Retry</button>
-            </div>
+    <!-- Premium Scanner Promo -->
+    <div class="card"
+        style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white; border: none; padding: 2.5rem; text-align: center; margin-bottom: 2rem; border-radius: 24px; position: relative; overflow: hidden;">
+        <div
+            style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(99, 102, 241, 0.2); border-radius: 50%; filter: blur(40px);">
         </div>
-        <div class="scan-overlay" id="scan-overlay" style="display: none;"></div>
-        <div class="scan-line" id="scan-line" style="display: none;"></div>
+        <div style="position: relative; z-index: 1;">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Instant Checkout</h2>
+            <p style="opacity: 0.8; margin-bottom: 1.5rem; font-size: 1.1rem;">Scan any product QR code to see details
+                and buy instantly.</p>
+            <a href="{{ url_for('scanner_page') }}" class="btn-primary"
+                style="background: #6366f1; border: none; padding: 1rem 2.5rem; font-size: 1.1rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                <span style="font-size: 1.4rem;">📷</span> Open Premium Scanner
+            </a>
+        </div>
     </div>
 
-    <!-- Controls -->
-    <div class="scanner-controls">
-        <button class="control-btn" onclick="document.getElementById('file-input').click()">
-            📁 Upload Image
-        </button>
-        <button class="control-btn" onclick="toggleMute()" id="mute-btn">
-            🔊 Sound On
-        </button>
-        <input type="file" id="file-input" accept="image/*" onchange="handleFileScan(this)">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-weight: 400; letter-spacing: 1px; color: #fff;">Local Stores</h2>
+        <p style="opacity: 0.7;">Browse and shop from your favorite stores</p>
     </div>
 
-    <!-- Hidden Manual Entry -->
-    <div style="text-align: center; margin-top: 20px;">
-        <button class="btn btn-sm btn-link" style="color: #666;" onclick="manualEntry()">Enter Code Manually</button>
+    <div id="stores-list" class="grid">
+        <!-- Stores will be loaded here -->
     </div>
-
 </div>
 
 <!-- Audio for Beep -->

@@ -50,15 +50,30 @@
         async function onScanSuccess(decodedText, decodedResult) {
             console.log(`Code matched = ${decodedText}`, decodedResult);
 
-            // Stop scanner to show result
             await html5QrCode.stop();
 
-            const productId = decodedText;
             document.getElementById("loading").style.display = "block";
             document.getElementById("reader").style.display = "none";
 
+            let productId = decodedText;
+            let storeId = null;
+
+            // Try to parse JSON (Standard in the new system)
+            try {
+                const json = JSON.parse(decodedText);
+                if (json.id) {
+                    productId = json.id;
+                    storeId = json.store_id || null;
+                }
+            } catch (e) {
+                // Not JSON, assume plain ID
+            }
+
+            // Determine Firebase Path
+            const dbPath = storeId ? `stores/${storeId}/products/${productId}` : `products/${productId}`;
+
             // Fetch from Firebase
-            database.ref("products/" + productId).once("value")
+            database.ref(dbPath).once("value")
                 .then((snapshot) => {
                     const data = snapshot.val();
                     document.getElementById("loading").style.display = "none";
@@ -71,11 +86,11 @@
                         document.getElementById("result-content").innerHTML = `
                     <div class="detail-item">
                         <div class="detail-label">Name</div>
-                        <div class="detail-value">${data.name}</div>
+                        <div class="detail-value">${data.name || 'Unknown'}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Price</div>
-                        <div class="detail-value">₹${data.price}</div>
+                        <div class="detail-value">₹${data.price || '0'}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Description</div>
@@ -83,10 +98,7 @@
                     </div>
                 `;
 
-                        // Vibrate if available
-                        if (window.navigator.vibrate) {
-                            window.navigator.vibrate(100);
-                        }
+                        if (window.navigator.vibrate) window.navigator.vibrate(100);
                     } else {
                         alert("Product not found!");
                         restartScanner();

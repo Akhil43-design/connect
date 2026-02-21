@@ -7,7 +7,12 @@
     <div class="page-header">
         <h1 id="store-name">Store Products</h1>
         <p id="store-description"></p>
-        <button onclick="requestProduct()" class="btn-secondary" style="margin-top: 10px;">Request a Product</button>
+        <div style="display: flex; gap: 10px; margin-top: 1rem;">
+            <button onclick="requestProduct()" class="btn-secondary">Request a Product</button>
+            <a href="{{ url_for('scanner_page') }}" class="btn-primary"
+                style="background: #10b981; border: none; text-decoration: none; display: flex; align-items: center; justify-content: center;">Scan
+                Any QR</a>
+        </div>
     </div>
 
     <div id="products-grid" class="grid">
