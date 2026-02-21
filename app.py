@@ -253,6 +253,15 @@ def stores_api():
     """Get all stores or create a new store"""
     if request.method == 'GET':
         stores = firebase.get_all_stores()
+        
+        # If customer, only show stores with products
+        if session.get('role') == 'customer':
+            filtered_stores = {}
+            for store_id, store_data in stores.items():
+                if store_data.get('products'):
+                    filtered_stores[store_id] = store_data
+            return jsonify(filtered_stores)
+            
         return jsonify(stores)
     
     elif request.method == 'POST':
@@ -303,53 +312,13 @@ def get_my_store_api():
     return jsonify(None)
 
 # Product APIs
-@app.route('/api/stores/<store_id>/products', methods=['GET', 'POST'])
+@app.route('/api/stores/<store_id>/products', methods=['GET'])
 @login_required
 def products_api(store_id):
-    """Get all products or add a new product"""
+    """Get all products for a store"""
     if request.method == 'GET':
         products = firebase.get_products(store_id)
         return jsonify(products)
-    
-    elif request.method == 'POST':
-        try:
-            data = request.json
-            if not data:
-                return jsonify({'error': 'No JSON data provided'}), 400
-                
-            product_id = str(uuid.uuid4())
-            
-            # Generate DYNAMIC QR code (ID ONLY)
-            # Fixes Vercel 500 Error by avoiding static file write
-            qr_path = f"/api/qr-code/{product_id}"
-            
-            product_data = {
-                'id': product_id,
-                'name': data.get('name'),
-                'price': data.get('price'),
-                'size': data.get('size', ''),
-                'color': data.get('color', ''),
-                'description': data.get('description', ''),
-                'stock': data.get('stock', 0),
-                'image': data.get('image', ''),
-                'qr_code': qr_path, # Now points to dynamic image route
-                'scan_count': 0,
-                'created_at': datetime.now().isoformat()
-            }
-            
-            firebase.add_product(store_id, product_id, product_data)
-            
-            return jsonify({
-                'success': True,
-                'product_id': product_id,
-                'product': product_data
-            })
-        except Exception as e:
-            # Return actual error for debugging
-            import traceback
-            traceback.print_exc()
-            return jsonify({'error': str(e)}), 500
-            return jsonify({'error': f"Server Error: {str(e)}"}), 500
 
 @app.route('/api/stores/<store_id>/products/<product_id>', methods=['GET', 'PUT', 'DELETE'])
 @login_required

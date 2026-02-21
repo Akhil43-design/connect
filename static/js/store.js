@@ -75,54 +75,7 @@ async function handleStoreRegistration(event) {
     }
 }
 
-// Show add product form
-function showAddProductForm() {
-    document.getElementById('add-product-form').style.display = 'block';
-}
 
-// Hide add product form
-function hideAddProductForm() {
-    document.getElementById('add-product-form').style.display = 'none';
-}
-
-// Handle add product
-async function handleAddProduct(event) {
-    event.preventDefault();
-
-    const productData = {
-        name: document.getElementById('product-name').value,
-        price: parseFloat(document.getElementById('product-price').value),
-        size: document.getElementById('product-size').value,
-        color: document.getElementById('product-color').value,
-        stock: parseInt(document.getElementById('product-stock').value),
-        image: document.getElementById('product-image').value,
-        description: document.getElementById('product-description').value
-    };
-
-    try {
-        const response = await fetch(`/api/stores/${currentStoreId}/products`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(productData)
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            alert('Product added successfully!');
-            hideAddProductForm();
-            event.target.reset();
-            loadProducts();
-        } else {
-            alert('Failed to add product');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred');
-    }
-}
 
 // Load products
 async function loadProducts() {

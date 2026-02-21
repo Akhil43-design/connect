@@ -29,56 +29,11 @@
         <div class="card">
             <h2>Product Management</h2>
             <div style="display: flex; gap: 10px;">
-                <button onclick="showAddProductForm()" class="btn-primary">Standard Add</button>
                 <a href="{{ url_for('owner_page') }}" class="btn-primary"
-                    style="background: linear-gradient(135deg, #6366f1, #a855f7); border: none; text-decoration: none; display: flex; align-items: center; justify-content: center;">Premium
-                    QR Generator</a>
+                    style="background: linear-gradient(135deg, #6366f1, #a855f7); border: none; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 100%; padding: 1.2rem; font-size: 1.1rem; border-radius: 12px;">
+                    🚀 Open Premium QR Studio
+                </a>
             </div>
-        </div>
-
-        <!-- Add Product Form -->
-        <div id="add-product-form" class="card" style="display: none;">
-            <h3>Add New Product</h3>
-            <form onsubmit="handleAddProduct(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Product Name</label>
-                        <input type="text" id="product-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Price</label>
-                        <input type="number" id="product-price" step="0.01" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Size</label>
-                        <input type="text" id="product-size">
-                    </div>
-                    <div class="form-group">
-                        <label>Color</label>
-                        <input type="text" id="product-color">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Stock Quantity</label>
-                        <input type="number" id="product-stock" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Image URL</label>
-                        <input type="text" id="product-image">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="product-description" rows="3"></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">Add Product</button>
-                    <button type="button" onclick="hideAddProductForm()" class="btn-secondary">Cancel</button>
-                </div>
-            </form>
         </div>
 
         <!-- Products List -->
