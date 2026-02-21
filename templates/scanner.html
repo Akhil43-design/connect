@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Product QR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/qr_pages.css') }}">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="premium-card">
+            <h2>Scan QR Code</h2>
+            <p class="subtitle">Focus the QR code within the frame</p>
+
+            <div id="reader"></div>
+
+            <div id="result-container" class="product-details">
+                <h3>Product Details</h3>
+                <div id="result-content">
+                    <!-- Data will be injected here -->
+                </div>
+                <button onclick="restartScanner()"
+                    style="background: rgba(255,255,255,0.1); color: var(--text-muted); margin-top: 1.5rem;">Scan
+                    Another</button>
+            </div>
+
+            <div id="loading" style="display:none; color: var(--text-muted); margin-top: 1rem;">
+                Searching for product...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {{ firebase_config | tojson }};
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let html5QrCode;
+        const scannerConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        async function onScanSuccess(decodedText, decodedResult) {
+            console.log(`Code matched = ${decodedText}`, decodedResult);
+
+            // Stop scanner to show result
+            await html5QrCode.stop();
+
+            const productId = decodedText;
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("reader").style.display = "none";
+
+            // Fetch from Firebase
+            database.ref("products/" + productId).once("value")
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    document.getElementById("loading").style.display = "none";
+
+                    if (data) {
+                        const resultContainer = document.getElementById("result-container");
+                        resultContainer.style.display = "block";
+                        resultContainer.classList.add("active");
+
+                        document.getElementById("result-content").innerHTML = `
+                    <div class="detail-item">
+                        <div class="detail-label">Name</div>
+                        <div class="detail-value">${data.name}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Price</div>
+                        <div class="detail-value">₹${data.price}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" style="font-weight: 400; font-size: 0.9rem;">${data.description || 'No description provided'}</div>
+                    </div>
+                `;
+
+                        // Vibrate if available
+                        if (window.navigator.vibrate) {
+                            window.navigator.vibrate(100);
+                        }
+                    } else {
+                        alert("Product not found!");
+                        restartScanner();
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    alert("Error fetching product details");
+                    restartScanner();
+                });
+        }
+
+        function restartScanner() {
+            document.getElementById("result-container").style.display = "none";
+            document.getElementById("reader").style.display = "block";
+            startScanner();
+        }
+
+        function startScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                scannerConfig,
+                onScanSuccess
+            ).catch(err => {
+                console.error("Scanner failed to start", err);
+                // Fallback for desktop or non-back camera
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    scannerConfig,
+                    onScanSuccess
+                );
+            });
+        }
+
+        // Start on load
+        window.addEventListener('load', startScanner);
+    </script>
+
+</body>
+
+</html>

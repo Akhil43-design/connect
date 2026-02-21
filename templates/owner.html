@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product & Generate QR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/qr_pages.css') }}">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛒</text></svg>">
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="premium-card">
+            <h2>Add Product</h2>
+            <p class="subtitle">Enter details to generate your smart QR code</p>
+
+            <div class="input-group">
+                <label for="name">Product Name</label>
+                <input type="text" id="name" placeholder="e.g. Milk Packet">
+            </div>
+
+            <div class="input-group">
+                <label for="price">Price (₹)</label>
+                <input type="text" id="price" placeholder="e.g. 45">
+            </div>
+
+            <div class="input-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" placeholder="e.g. Fresh full cream milk">
+            </div>
+
+            <button onclick="addProduct()">Generate QR Code</button>
+
+            <div id="qr-result" class="qr-result">
+                <h3>Generated QR Code</h3>
+                <div id="qrcode"></div>
+                <div class="product-details" id="saved-details">
+                    <!-- Details will be injected here -->
+                </div>
+                <button onclick="window.print()" style="background: var(--accent); margin-top: 1.5rem;">Print QR
+                    Label</button>
+                <button onclick="resetForm()"
+                    style="background: rgba(255,255,255,0.1); color: var(--text-muted); margin-top: 0.5rem;">Add
+                    Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Config injected from Flask
+        const firebaseConfig = {{ firebase_config | tojson }};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function addProduct() {
+            const name = document.getElementById("name").value.trim();
+            const price = document.getElementById("price").value.trim();
+            const description = document.getElementById("description").value.trim();
+
+            if (!name || !price) {
+                alert("Please enter at least name and price");
+                return;
+            }
+
+            // Using a push() to get a unique ID, similar to the requested structure
+            // In the existing app, products are usually under stores/{store_id}/products
+            // But for this standalone demo, we follow the user's requested "products" root if store_id isn't known
+            const productRef = database.ref("products").push();
+            const productId = productRef.key;
+
+            const productData = {
+                name: name,
+                price: price,
+                description: description,
+                qrData: productId,
+                timestamp: Date.now()
+            };
+
+            productRef.set(productData).then(() => {
+                // Show result
+                const qrResult = document.getElementById("qr-result");
+                qrResult.classList.add("active");
+
+                // Clear and generate QR
+                document.getElementById("qrcode").innerHTML = "";
+                new QRCode(document.getElementById("qrcode"), {
+                    text: productId,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#0f172a",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                // Show saved details
+                document.getElementById("saved-details").innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">Product Name</div>
+                    <div class="detail-value">${name}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Price</div>
+                    <div class="detail-value">₹${price}</div>
+                </div>
+            `;
+
+                // Scroll to result
+                qrResult.scrollIntoView({ behavior: 'smooth' });
+            }).catch(error => {
+                console.error("Error saving product:", error);
+                alert("Failed to save product: " + error.message);
+            });
+        }
+
+        function resetForm() {
+            document.getElementById("name").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("description").value = "";
+            document.getElementById("qr-result").classList.remove("active");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+</body>
+
+</html>

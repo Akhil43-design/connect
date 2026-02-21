@@ -225,6 +225,21 @@ def store_dashboard():
     """Store owner dashboard"""
     return render_template('store_dashboard.html')
 
+@app.route('/owner')
+def owner_page():
+    """Stand-alone owner page for product addition and QR generation"""
+    return render_template('owner.html', firebase_config=config.FIREBASE_CONFIG)
+
+@app.route('/scanner')
+def scanner_page():
+    """Stand-alone scanner page for QR scanning and product fetching"""
+    return render_template('scanner.html', firebase_config=config.FIREBASE_CONFIG)
+
+@app.route('/favicon.ico')
+def favicon():
+    """Handle favicon requests to prevent 404 logs"""
+    return '', 204
+
 # ========== API ENDPOINTS ==========
 
 # Store APIs
