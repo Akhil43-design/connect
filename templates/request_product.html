@@ -11,6 +11,13 @@
 
     <div class="card">
         <form onsubmit="handleProductRequest(event)">
+            <div id="store-selection-group" class="form-group" style="display: none;">
+                <label>Select Store</label>
+                <select id="request-store-id" class="form-control"
+                    style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="">-- Choose a Store --</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label>Product Name</label>
                 <input type="text" id="request-product-name" required placeholder="What product would you like?">
@@ -28,12 +35,42 @@
 
 {% block scripts %}
 <script>
-    const storeId = "{{ store_id }}";
+    let storeId = "{{ store_id or '' }}";
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const storeGroup = document.getElementById('store-selection-group');
+        const storeSelect = document.getElementById('request-store-id');
+
+        if (!storeId) {
+            // Fetch stores to allow selection
+            try {
+                const response = await fetch('/api/stores');
+                const stores = await response.json();
+
+                Object.entries(stores).forEach(([id, store]) => {
+                    const opt = document.createElement('option');
+                    opt.value = id;
+                    opt.textContent = store.name;
+                    storeSelect.appendChild(opt);
+                });
+
+                storeGroup.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading stores:', error);
+            }
+        }
+    });
 
     async function handleProductRequest(event) {
         event.preventDefault();
 
+        const selectedStoreId = storeId || document.getElementById('request-store-id').value;
         const productName = document.getElementById('request-product-name').value;
+
+        if (!selectedStoreId) {
+            alert('Please select a store');
+            return;
+        }
 
         try {
             const response = await fetch('/api/requests', {
@@ -42,16 +79,17 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    store_id: storeId,
+                    store_id: selectedStoreId,
                     product_name: productName
                 })
             });
 
             if (response.ok) {
                 alert('Product request submitted successfully!');
-                window.history.back();
+                window.location.href = '/customer/dashboard';
             } else {
-                alert('Failed to submit request');
+                const err = await response.json();
+                alert('Failed to submit request: ' + (err.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Error:', error);

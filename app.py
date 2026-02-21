@@ -5,7 +5,6 @@ Main application file with all routes and API endpoints
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_file
 from firebase_service import FirebaseService
-from qr_generator import QRGenerator
 import uuid
 from datetime import datetime
 import config
@@ -15,7 +14,6 @@ app.secret_key = config.SECRET_KEY
 
 # Initialize services
 firebase = FirebaseService()
-qr_gen = QRGenerator()
 
 # ========== HELPER FUNCTIONS ==========
 
@@ -193,6 +191,7 @@ def history():
     """Scanned product history"""
     return render_template('history.html')
 
+@app.route('/request-product', defaults={'store_id': None})
 @app.route('/request-product/<store_id>')
 @login_required
 @role_required('customer')
@@ -253,15 +252,6 @@ def stores_api():
     """Get all stores or create a new store"""
     if request.method == 'GET':
         stores = firebase.get_all_stores()
-        
-        # If customer, only show stores with products
-        if session.get('role') == 'customer':
-            filtered_stores = {}
-            for store_id, store_data in stores.items():
-                if store_data.get('products'):
-                    filtered_stores[store_id] = store_data
-            return jsonify(filtered_stores)
-            
         return jsonify(stores)
     
     elif request.method == 'POST':
@@ -541,108 +531,6 @@ def analytics_api(store_id):
 
 # ========== RUN APPLICATION ==========
 
-@app.route('/api/qr/<store_id>/<product_id>')
-def get_qr_code(store_id, product_id):
-    """Generate and serve QR code dynamically with JSON payload"""
-    try:
-        # Fetch actual product details to encode in QR
-        product = firebase.get_product(store_id, product_id)
-        
-        if not product:
-            return jsonify({'error': 'Product not found'}), 404
-            
-        # Create the JSON payload requested by user
-        # Format: { "name": "Milk Packet", "price": "₹45", "weight": "500ml", "store": "Akhil Mart" }
-        payload = {
-            "id": product_id, # Keep ID for API calls
-            "store_id": store_id,
-            "name": product.get('name'),
-            "price": f"₹{product.get('price')}",
-            "weight": product.get('size', ''),
-            "store": "Connect Store", # Should ideally fetch store name
-            "image": product.get('image', '') # Helper for UI
-        }
-        
-        buffer = qr_gen.generate_qr_stream(payload)
-        return send_file(
-            buffer,
-            mimetype='image/png',
-            as_attachment=False,
-            download_name=f'{product_id}.png'
-        )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/qr-code/<product_id>')
-def get_id_qr_code(product_id):
-    """
-    Generate static-like QR code (ID ONLY) dynamically.
-    Fixes Vercel 500 Error (Read-only filesystem).
-    """
-    try:
-        # Generate QR stream with JUST the ID (string)
-        buffer = qr_gen.generate_qr_stream(product_id)
-        return send_file(
-            buffer,
-            mimetype='image/png',
-            as_attachment=False,
-            download_name=f'{product_id}.png'
-        )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-def scan_qr_api():
-    """
-    Process uploaded image for QR codes using Python OpenCV/Pyzbar
-    Requested by user to 'use python' for scanning.
-    """
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-
-    try:
-        # Import here to avoid crash if libs missing locally
-        import cv2
-        import numpy as np
-        from pyzbar.pyzbar import decode
-        from PIL import Image
-        import io
-
-        # Read image
-        in_memory_file = io.BytesIO()
-        file.save(in_memory_file)
-        in_memory_file.seek(0)
-        
-        # Convert to numpy array for OpenCV
-        file_bytes = np.asarray(bytearray(in_memory_file.read()), dtype=np.uint8)
-        img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        
-        # Decode
-        decoded_objects = decode(img)
-        
-        if not decoded_objects:
-            # Try converting to grayscale
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            decoded_objects = decode(gray)
-
-        if not decoded_objects:
-            return jsonify({'error': 'No QR code detected in image'}), 404
-
-        # Get first result
-        qr_data = decoded_objects[0].data.decode('utf-8')
-        
-        return jsonify({'success': True, 'data': qr_data})
-
-    except ImportError:
-        return jsonify({'error': 'Server missing Python QR libraries (opencv/pyzbar)'}), 500
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': f"Processing failed: {str(e)}"}), 500
 
 if __name__ == '__main__':
     print("\n" + "="*60)

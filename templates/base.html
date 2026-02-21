@@ -18,14 +18,12 @@
             <div class="nav-links">
                 {% if session.user_id %}
                 {% if session.role == 'customer' %}
-                <a href="{{ url_for('customer_dashboard') }}">Stores</a>
-                <a href="{{ url_for('scanner_page') }}">Scan QR</a>
-                <a href="{{ url_for('orders') }}">Orders</a>
+                <a href="{{ url_for('customer_dashboard') }}">Home</a>
+                <a href="{{ url_for('scanner_page') }}">Premium Scanner</a>
                 <a href="{{ url_for('cart') }}">Cart</a>
-                <a href="{{ url_for('history') }}">History</a>
                 {% elif session.role == 'store_owner' %}
                 <a href="{{ url_for('store_dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('owner_page') }}">Generate QR</a>
+                <a href="{{ url_for('owner_page') }}">Premium Studio</a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
                 {% else %}

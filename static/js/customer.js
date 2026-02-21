@@ -22,19 +22,56 @@ async function loadStores() {
 
 function renderStores(stores) {
     const list = document.getElementById('stores-list');
-    if (!list) return; // Guard clause if we are not on dashboard
+    if (!list) return;
 
     list.innerHTML = '';
-    stores.forEach(store => {
+
+    if (!stores || Object.keys(stores).length === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.4); grid-column: 1/-1;">
+                <p>No stores with active products found nearby.</p>
+            </div>`;
+        return;
+    }
+
+    Object.entries(stores).forEach(([id, store]) => {
         const card = document.createElement('div');
         card.className = 'store-card';
-        card.onclick = () => window.location.href = `/store/${store.id}`;
+        card.style.background = 'rgba(255, 255, 255, 0.05)';
+        card.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        card.style.borderRadius = '20px';
+        card.style.padding = '1.5rem';
+        card.style.cursor = 'pointer';
+        card.style.transition = 'all 0.3s ease';
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.gap = '1.2rem';
+        card.style.backdropFilter = 'blur(10px)';
+
+        card.onmouseover = () => {
+            card.style.background = 'rgba(255, 255, 255, 0.1)';
+            card.style.transform = 'translateY(-5px)';
+            card.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        };
+        card.onmouseout = () => {
+            card.style.background = 'rgba(255, 255, 255, 0.05)';
+            card.style.transform = 'translateY(0)';
+            card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        };
+
+        card.onclick = () => window.location.href = `/store/${id}`;
+
         card.innerHTML = `
-            <div class="store-icon">🏪</div>
-            <div class="store-info">
-                <h3>${store.name}</h3>
-                <p>${store.location}</p>
+            <div class="store-icon" style="font-size: 2.5rem; background: rgba(99, 102, 241, 0.1); width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; border-radius: 15px;">🏪</div>
+            <div class="store-info" style="flex: 1;">
+                <h3 style="margin: 0 0 5px 0; font-size: 1.25rem; font-weight: 600; color: #fff;">${store.name}</h3>
+                <p style="margin: 0; opacity: 0.6; font-size: 0.9rem;">${store.description || 'Premium Partner Store'}</p>
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 5px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></span>
+                    <span style="font-size: 0.75rem; color: #10b981; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Active Inventory</span>
+                </div>
             </div>
+            <div style="color: rgba(255,255,255,0.3); font-size: 1.2rem;">➜</div>
         `;
         list.appendChild(card);
     });

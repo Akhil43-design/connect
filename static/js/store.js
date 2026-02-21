@@ -104,19 +104,21 @@ async function loadProducts() {
 function createProductManagementCard(productId, product) {
     const card = document.createElement('div');
     card.className = 'product-card';
+    card.style.background = '#fff';
+    card.style.padding = '1rem';
+    card.style.borderRadius = '12px';
+    card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
 
     const imageUrl = product.image || 'https://via.placeholder.com/300x200?text=No+Image';
 
     card.innerHTML = `
-        <img src="${imageUrl}" alt="${product.name}">
-        <h3>${product.name}</h3>
-        <div class="product-price">$${parseFloat(product.price).toFixed(2)}</div>
-        <div class="product-info">Stock: ${product.stock} | Scans: ${product.scan_count || 0}</div>
-        <div class="qr-code-container">
-            <p><strong>QR Code:</strong></p>
-            <img src="/api/qr/${currentStoreId}/${product.id}" alt="QR Code" loading="lazy"> 
+        <img src="${imageUrl}" alt="${product.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+        <h3 style="margin: 0 0 0.5rem 0;">${product.name}</h3>
+        <div class="product-price" style="font-weight: 700; color: #6366f1; font-size: 1.2rem; margin-bottom: 0.5rem;">$${parseFloat(product.price).toFixed(2)}</div>
+        <div class="product-info" style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+            Stock: ${product.stock} | Scans: ${product.scan_count || 0}
         </div>
-        <button class="btn-danger" onclick="deleteProduct('${productId}')">Delete</button>
+        <button class="btn-danger" onclick="deleteProduct('${productId}')" style="width: 100%; padding: 0.6rem; border-radius: 8px;">Delete Product</button>
     `;
 
     return card;
@@ -152,45 +154,41 @@ async function loadAnalytics() {
         const analytics = await response.json();
 
         // Update total orders
-        document.getElementById('total-orders').textContent = analytics.total_orders;
+        const totalOrdersEl = document.getElementById('total-orders');
+        if (totalOrdersEl) totalOrdersEl.textContent = analytics.total_orders;
 
         // Update most scanned
         const mostScanned = document.getElementById('most-scanned');
-        if (analytics.most_scanned.length > 0) {
-            mostScanned.innerHTML = '<ul class="analytics-list">' +
-                analytics.most_scanned.map(item =>
-                    `<li>${item.name}: ${item.count} scans</li>`
-                ).join('') +
-                '</ul>';
-        } else {
-            mostScanned.innerHTML = '<p>No data yet</p>';
-        }
-
-        // Update most requested in analytics card
-        const mostRequested = document.getElementById('most-requested');
-        if (analytics.most_requested.length > 0) {
-            mostRequested.innerHTML = '<ul class="analytics-list">' +
-                analytics.most_requested.map(item =>
-                    `<li>${item.name}: ${item.count} requests</li>`
-                ).join('') +
-                '</ul>';
-        } else {
-            mostRequested.innerHTML = '<p>No requests yet</p>';
+        if (mostScanned) {
+            if (analytics.most_scanned && analytics.most_scanned.length > 0) {
+                mostScanned.innerHTML = '<ul class="analytics-list" style="list-style: none; padding: 0; margin: 0;">' +
+                    analytics.most_scanned.map(item =>
+                        `<li style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+                            <span>${item.name}</span>
+                            <span style="font-weight: 600; color: #6366f1;">${item.count} scans</span>
+                        </li>`
+                    ).join('') +
+                    '</ul>';
+            } else {
+                mostScanned.innerHTML = '<p style="text-align: center; color: #64748b; padding: 10px 0;">No scan data yet</p>';
+            }
         }
 
         // Update High Demand Section
         const highDemandList = document.getElementById('high-demand-list');
-        if (analytics.most_requested.length > 0) {
-            highDemandList.innerHTML = '<div class="demand-grid">' +
-                analytics.most_requested.map(item =>
-                    `<div class="demand-card" style="border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
-                        <span style="font-weight: bold; font-size: 1.1em;">${item.name}</span>
-                        <span class="badge" style="background: #e74c3c; color: white; padding: 5px 10px; border-radius: 20px;">${item.count} Requests</span>
-                    </div>`
-                ).join('') +
-                '</div>';
-        } else {
-            highDemandList.innerHTML = '<p>No high demand products at the moment.</p>';
+        if (highDemandList) {
+            if (analytics.most_requested && analytics.most_requested.length > 0) {
+                highDemandList.innerHTML = '<div class="demand-grid">' +
+                    analytics.most_requested.map(item =>
+                        `<div class="demand-card" style="border: 1px solid #f1f5f9; padding: 15px; margin-bottom: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+                            <span style="font-weight: 600; color: #1e293b;">${item.name}</span>
+                            <span class="badge" style="background: #fee2e2; color: #ef4444; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${item.count} Requests</span>
+                        </div>`
+                    ).join('') +
+                    '</div>';
+            } else {
+                highDemandList.innerHTML = '<p style="text-align: center; color: #64748b; font-style: italic; padding: 20px 0;">No high demand products at the moment.</p>';
+            }
         }
     } catch (error) {
         console.error('Error loading analytics:', error);
