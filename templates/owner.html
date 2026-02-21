@@ -19,22 +19,67 @@
 
     <div class="container">
         <div class="premium-card">
-            <h2>Add Product</h2>
-            <p class="subtitle">Enter details to generate your smart QR code</p>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" id="name" placeholder="e.g. Milk Packet">
+                </div>
 
-            <div class="input-group">
-                <label for="name">Product Name</label>
-                <input type="text" id="name" placeholder="e.g. Milk Packet">
+                <div class="input-group">
+                    <label for="price">Price (₹)</label>
+                    <input type="number" id="price" placeholder="e.g. 45">
+                </div>
+            </div>
+
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="input-group">
+                    <label for="stock">Stock Quantity</label>
+                    <input type="number" id="stock" placeholder="e.g. 100">
+                </div>
+
+                <div class="input-group">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="Grocery">Grocery</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Home">Home</option>
+                        <option value="Beauty">Beauty</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
             </div>
 
             <div class="input-group">
-                <label for="price">Price (₹)</label>
-                <input type="text" id="price" placeholder="e.g. 45">
+                <label for="brand">Brand</label>
+                <input type="text" id="brand" placeholder="e.g. Amul">
             </div>
 
             <div class="input-group">
-                <label for="description">Description</label>
+                <label>Product Image</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 0.5rem;">
+                    <button id="btn-url" type="button" onclick="setImageMode('url')"
+                        style="flex: 1; padding: 0.5rem; font-size: 0.8rem; background: var(--accent);">Image
+                        URL</button>
+                    <button id="btn-upload" type="button" onclick="setImageMode('upload')"
+                        style="flex: 1; padding: 0.5rem; font-size: 0.8rem; background: rgba(255,255,255,0.1);">Upload
+                        File</button>
+                </div>
+                <input type="text" id="image-url" placeholder="https://example.com/image.jpg">
+                <input type="file" id="image-file" style="display: none;" accept="image/*"
+                    onchange="handleImageUpload(event)">
+                <input type="hidden" id="image-base64">
+            </div>
+
+            <div class="input-group">
+                <label for="description">Short Description</label>
                 <input type="text" id="description" placeholder="e.g. Fresh full cream milk">
+            </div>
+
+            <div class="input-group">
+                <label for="specs">Detailed Specifications</label>
+                <textarea id="specs" rows="4" placeholder="e.g. Ingredients: Milk, Fat content: 3%, Weight: 500ml..."
+                    style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; padding: 0.8rem;"></textarea>
             </div>
 
             <button onclick="addProduct()">Generate QR Code</button>
@@ -79,10 +124,54 @@
         }
         fetchStoreInfo();
 
+        let imageMode = 'url';
+
+        function setImageMode(mode) {
+            imageMode = mode;
+            const urlInput = document.getElementById('image-url');
+            const fileInput = document.getElementById('image-file');
+            const btnUrl = document.getElementById('btn-url');
+            const btnUpload = document.getElementById('btn-upload');
+
+            if (mode === 'url') {
+                urlInput.style.display = 'block';
+                fileInput.style.display = 'none';
+                btnUrl.style.background = 'var(--accent)';
+                btnUpload.style.background = 'rgba(255,255,255,0.1)';
+            } else {
+                urlInput.style.display = 'none';
+                fileInput.style.display = 'block';
+                btnUrl.style.background = 'rgba(255,255,255,0.1)';
+                btnUpload.style.background = 'var(--accent)';
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('image-base64').value = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
         function addProduct() {
             const name = document.getElementById("name").value.trim();
             const price = document.getElementById("price").value.trim();
             const description = document.getElementById("description").value.trim();
+            const stock = document.getElementById("stock").value.trim();
+            const category = document.getElementById("category").value;
+            const brand = document.getElementById("brand").value.trim();
+            const specs = document.getElementById("specs").value.trim();
+
+            let imageUrl = '';
+            if (imageMode === 'url') {
+                imageUrl = document.getElementById('image-url').value.trim();
+            } else {
+                imageUrl = document.getElementById('image-base64').value;
+            }
 
             if (!name || !price) {
                 alert("Please enter at least name and price");
@@ -104,6 +193,11 @@
                 name: name,
                 price: price,
                 description: description,
+                stock: stock || 0,
+                category: category,
+                brand: brand || 'Generic',
+                specs: specs || '',
+                image: imageUrl || '',
                 qrData: productId,
                 timestamp: Date.now()
             };
@@ -135,6 +229,7 @@
 
                 // Show saved details
                 document.getElementById("saved-details").innerHTML = `
+                ${imageUrl ? `<img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-bottom: 1rem;">` : ''}
                 <div class="detail-item">
                     <div class="detail-label">Product Name</div>
                     <div class="detail-value">${name}</div>
@@ -143,6 +238,15 @@
                     <div class="detail-label">Price</div>
                     <div class="detail-value">₹${price}</div>
                 </div>
+                <div class="detail-item">
+                    <div class="detail-label">Stock</div>
+                    <div class="detail-value">${stock || 0} units</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Category</div>
+                    <div class="detail-value">${category}</div>
+                </div>
+                ${brand ? `<div class="detail-item"><div class="detail-label">Brand</div><div class="detail-value">${brand}</div></div>` : ''}
                 ${currentStoreId ? `<div class="detail-item"><div class="detail-label">Store ID</div><div class="detail-value">${currentStoreId}</div></div>` : ''}
             `;
 
@@ -158,6 +262,12 @@
             document.getElementById("name").value = "";
             document.getElementById("price").value = "";
             document.getElementById("description").value = "";
+            document.getElementById("stock").value = "";
+            document.getElementById("brand").value = "";
+            document.getElementById("specs").value = "";
+            document.getElementById("image-url").value = "";
+            document.getElementById("image-file").value = "";
+            document.getElementById("image-base64").value = "";
             document.getElementById("qr-result").classList.remove("active");
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }

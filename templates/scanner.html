@@ -83,20 +83,38 @@
                         resultContainer.style.display = "block";
                         resultContainer.classList.add("active");
 
+                        const stockStatus = parseInt(data.stock) > 0 ?
+                            `<span style="color: #10b981; font-weight: 600;">● In Stock (${data.stock})</span>` :
+                            `<span style="color: #ef4444; font-weight: 600;">● Out of Stock</span>`;
+
                         document.getElementById("result-content").innerHTML = `
-                    <div class="detail-item">
-                        <div class="detail-label">Name</div>
-                        <div class="detail-value">${data.name || 'Unknown'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Price</div>
-                        <div class="detail-value">₹${data.price || '0'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Description</div>
-                        <div class="detail-value" style="font-weight: 400; font-size: 0.9rem;">${data.description || 'No description provided'}</div>
-                    </div>
-                `;
+                            ${data.image ? `<img src="${data.image}" style="width: 100%; height: 200px; object-fit: contain; background: #fff; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1);">` : ''}
+                            
+                            <div style="text-align: left; margin-bottom: 1.5rem;">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem;">${data.brand || 'Generic'}</div>
+                                <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">${data.name || 'Unknown Product'}</h2>
+                                <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent); margin: 0.5rem 0;">₹${data.price || '0'}</div>
+                                ${stockStatus}
+                            </div>
+
+                            <div style="background: rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 12px; text-align: left; margin-bottom: 1rem;">
+                                <div class="detail-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                                    <div class="detail-label" style="font-size: 0.75rem; color: var(--text-muted);">CATEGORY</div>
+                                    <div class="detail-value" style="font-weight: 600;">${data.category || 'General'}</div>
+                                </div>
+                                <div class="detail-item" style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                                    <div class="detail-label" style="font-size: 0.75rem; color: var(--text-muted);">DESCRIPTION</div>
+                                    <div class="detail-value" style="font-weight: 400; line-height: 1.4;">${data.description || 'No description available.'}</div>
+                                </div>
+                                ${data.specs ? `
+                                <div class="detail-item">
+                                    <div class="detail-label" style="font-size: 0.75rem; color: var(--text-muted);">SPECIFICATIONS</div>
+                                    <div class="detail-value" style="font-weight: 400; font-size: 0.85rem; white-space: pre-line; line-height: 1.5;">${data.specs}</div>
+                                </div>` : ''}
+                            </div>
+
+                            <button onclick="addToCart('${productId}', '${storeId}')" style="width: 100%; padding: 1rem; background: var(--accent); border-radius: 10px; font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; cursor: pointer;">Add to Cart</button>
+                        `;
 
                         if (window.navigator.vibrate) window.navigator.vibrate(100);
                     } else {
@@ -108,6 +126,25 @@
                     alert("Error fetching product details");
                     restartScanner();
                 });
+        }
+
+        async function addToCart(productId, storeId) {
+            try {
+                const response = await fetch('/api/cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: productId, store_id: storeId, quantity: 1 })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert("Added to cart!");
+                } else {
+                    alert("Error: " + result.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Failed to add to cart");
+            }
         }
 
         function restartScanner() {
