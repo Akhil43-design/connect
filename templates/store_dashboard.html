@@ -28,7 +28,12 @@
     <div id="store-management" style="display: none;">
         <div class="card">
             <h2>Product Management</h2>
-            <button onclick="showAddProductForm()" class="btn-primary">Add New Product</button>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="showAddProductForm()" class="btn-primary">Standard Add</button>
+                <a href="{{ url_for('owner_page') }}" class="btn-primary"
+                    style="background: linear-gradient(135deg, #6366f1, #a855f7); border: none; text-decoration: none; display: flex; align-items: center; justify-content: center;">Premium
+                    QR Generator</a>
+            </div>
         </div>
 
         <!-- Add Product Form -->

@@ -226,11 +226,15 @@ def store_dashboard():
     return render_template('store_dashboard.html')
 
 @app.route('/owner')
+@login_required
+@role_required('store_owner')
 def owner_page():
     """Stand-alone owner page for product addition and QR generation"""
     return render_template('owner.html', firebase_config=config.FIREBASE_CONFIG)
 
 @app.route('/scanner')
+@login_required
+@role_required('customer')
 def scanner_page():
     """Stand-alone scanner page for QR scanning and product fetching"""
     return render_template('scanner.html', firebase_config=config.FIREBASE_CONFIG)
