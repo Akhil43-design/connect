@@ -122,13 +122,20 @@
             const grid = document.getElementById('products-grid');
             const noProducts = document.getElementById('no-products');
 
-            const products = Array.isArray(data) ? data : Object.values(data);
+            // Normalize data: preserve IDs from Firebase object keys
+            let products = [];
+            if (Array.isArray(data)) {
+                products = data;
+            } else if (data && typeof data === 'object' && !data.error) {
+                products = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+            }
 
-            if (!products || products.length === 0) {
+            if (!products.length) {
                 grid.innerHTML = '';
                 noProducts.classList.remove('hidden');
                 return;
             }
+            noProducts.classList.add('hidden');
 
             grid.innerHTML = products.map(p => `
                 <div class="product-card bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer" onclick="addToCart('${p.id || p.product_id}', '${storeId}', '${(p.name||'').replace(/'/g,"\\'")}')">
